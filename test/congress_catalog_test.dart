@@ -39,4 +39,17 @@ void main() {
     expect(DemoBadgeQr.payloadFor(attendee).contains(attendee.email), isFalse);
     expect(DemoBadgeQr.payloadFor(attendee).contains(attendee.phone), isFalse);
   });
+
+  test('scientific programme summary uses catalog sessions', () {
+    final summary = CongressCatalog.scientificProgrammeSummary();
+    expect(summary, contains('Opening Ceremony'));
+    expect(summary, contains('Dr. Sarah Johnson'));
+    expect(summary, contains('Not a downloadable PDF'));
+  });
+
+  test('resource search finds pediatric guide only', () {
+    final matches = CongressCatalog.filterResources(query: 'Pediatric');
+    expect(matches, hasLength(1));
+    expect(matches.first.id, 'pediatric-guide');
+  });
 }

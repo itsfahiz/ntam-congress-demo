@@ -176,3 +176,110 @@ class CongressSession {
     SessionGlyph.research => Icons.biotech_outlined,
   };
 }
+
+enum QuestionTopic { general, nutrition, research, clinical }
+
+enum QuestionSort { popular, recent, answered }
+
+enum ResourceKind { pdf, slides, video }
+
+enum VoteCastResult { recorded, missingSelection, alreadyVoted }
+
+class PollOption {
+  const PollOption({
+    required this.id,
+    required this.label,
+    required this.simulatedVotes,
+  });
+
+  final String id;
+  final String label;
+  final int simulatedVotes;
+}
+
+class CongressPoll {
+  const CongressPoll({
+    required this.id,
+    required this.topicLabel,
+    required this.question,
+    required this.options,
+  });
+
+  final String id;
+  final String topicLabel;
+  final String question;
+  final List<PollOption> options;
+}
+
+class CongressQuestion {
+  const CongressQuestion({
+    required this.id,
+    required this.body,
+    required this.topic,
+    required this.authorName,
+    required this.seedLikes,
+    this.speakerId,
+    this.answered = false,
+    this.localSubmission = false,
+  });
+
+  final String id;
+  final String body;
+  final QuestionTopic topic;
+  final String authorName;
+  final int seedLikes;
+  final String? speakerId;
+  final bool answered;
+  final bool localSubmission;
+
+  String get topicLabel => switch (topic) {
+    QuestionTopic.general => 'General',
+    QuestionTopic.nutrition => 'Nutrition',
+    QuestionTopic.research => 'Research',
+    QuestionTopic.clinical => 'Clinical',
+  };
+}
+
+class CongressResource {
+  const CongressResource({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.kind,
+    required this.body,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+  final ResourceKind kind;
+  final String body;
+
+  String get kindLabel => switch (kind) {
+    ResourceKind.pdf => 'PDF',
+    ResourceKind.slides => 'SLIDES',
+    ResourceKind.video => 'VIDEO',
+  };
+
+  String get availabilityLabel => switch (kind) {
+    ResourceKind.video => 'Video is not bundled · demo outline',
+    ResourceKind.pdf => 'Demo summary · not a downloadable file',
+    ResourceKind.slides => 'Demo outline · not a slide deck file',
+  };
+}
+
+class CongressExhibitor {
+  const CongressExhibitor({
+    required this.id,
+    required this.name,
+    required this.hall,
+    required this.focus,
+    required this.summary,
+  });
+
+  final String id;
+  final String name;
+  final String hall;
+  final String focus;
+  final String summary;
+}

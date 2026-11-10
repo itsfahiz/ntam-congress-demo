@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_filter_chips.dart';
-import '../../core/widgets/gradient_icon_badge.dart';
+import '../../core/widgets/congress_hero_banner.dart';
 import '../../core/widgets/light_search_field.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
@@ -88,7 +88,11 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
         tooltip: _favoritesOnly ? 'Show all speakers' : 'Show favorites',
         onPressed: () => setState(() => _favoritesOnly = !_favoritesOnly),
       ),
-      hero: const _ExpertsBanner(),
+      hero: const CongressHeroBanner(
+        icon: Icons.groups_outlined,
+        title: 'Global Medical Experts',
+        subtitle: 'Meet speakers from nutrition, research and healthcare',
+      ),
       body: Column(
         children: [
           Padding(
@@ -179,53 +183,3 @@ const _focusOptions = <FilterChipOption<SpeakerFocus>>[
   FilterChipOption(value: SpeakerFocus.research, label: 'Research'),
   FilterChipOption(value: SpeakerFocus.pediatrics, label: 'Pediatrics'),
 ];
-
-class _ExpertsBanner extends StatelessWidget {
-  const _ExpertsBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: const Row(
-        children: [
-          GradientIconBadge(
-            icon: Icons.groups_outlined,
-            size: 52,
-            iconSize: 26,
-          ),
-          SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Global Medical Experts',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Meet speakers from nutrition, research and healthcare',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

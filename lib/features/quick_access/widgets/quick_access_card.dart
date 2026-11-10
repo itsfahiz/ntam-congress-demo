@@ -62,25 +62,31 @@ class QuickAccessCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.categoryWash,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-                    ),
-                    child: Text(
-                      item.categoryLabel,
-                      style: const TextStyle(
-                        color: AppColors.categoryInk,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.categoryWash,
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusPill,
+                        ),
+                      ),
+                      child: Text(
+                        item.categoryLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.categoryInk,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_forward_rounded,
                     size: 18,

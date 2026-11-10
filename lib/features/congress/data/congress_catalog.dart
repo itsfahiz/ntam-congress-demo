@@ -269,6 +269,204 @@ abstract final class CongressCatalog {
     ),
   ];
 
+  /// Local demo polls. Counts are simulated samples, not live attendee votes.
+  static const polls = <CongressPoll>[
+    CongressPoll(
+      id: 'session-rating',
+      topicLabel: 'Audience Feedback',
+      question: 'How would you rate the current session?',
+      options: [
+        PollOption(id: 'excellent', label: 'Excellent', simulatedVotes: 55),
+        PollOption(id: 'very-good', label: 'Very Good', simulatedVotes: 31),
+        PollOption(id: 'good', label: 'Good', simulatedVotes: 10),
+        PollOption(id: 'fair', label: 'Fair', simulatedVotes: 5),
+      ],
+    ),
+    CongressPoll(
+      id: 'workshop-topic',
+      topicLabel: 'Programme Planning',
+      question: 'Which topic should the next workshop expand?',
+      options: [
+        PollOption(
+          id: 'pediatric',
+          label: 'Pediatric nutrition',
+          simulatedVotes: 40,
+        ),
+        PollOption(
+          id: 'research-methods',
+          label: 'Clinical research methods',
+          simulatedVotes: 35,
+        ),
+        PollOption(
+          id: 'policy',
+          label: 'Public health policy',
+          simulatedVotes: 25,
+        ),
+      ],
+    ),
+    CongressPoll(
+      id: 'takeaways',
+      topicLabel: 'Clinical Practice',
+      question: "How useful were today's clinical takeaways?",
+      options: [
+        PollOption(id: 'apply', label: 'Ready to apply', simulatedVotes: 48),
+        PollOption(
+          id: 'examples',
+          label: 'Need more examples',
+          simulatedVotes: 32,
+        ),
+        PollOption(
+          id: 'recap',
+          label: 'Prefer a recap session',
+          simulatedVotes: 20,
+        ),
+      ],
+    ),
+  ];
+
+  /// Seeded Q&A cards. Separate from questions typed on this device.
+  static const questions = <CongressQuestion>[
+    CongressQuestion(
+      id: 'q-growth',
+      body:
+          'How can pediatric nutrition plans be personalized for children with different growth patterns?',
+      topic: QuestionTopic.nutrition,
+      authorName: 'Dr. Ahmed Khalid',
+      speakerId: ahmedId,
+      seedLikes: 24,
+      answered: true,
+    ),
+    CongressQuestion(
+      id: 'q-policy',
+      body:
+          'What regional policy changes would most improve hospital nutrition protocols?',
+      topic: QuestionTopic.clinical,
+      authorName: 'Dr. Sarah Johnson',
+      speakerId: sarahId,
+      seedLikes: 11,
+      answered: true,
+    ),
+    CongressQuestion(
+      id: 'q-trial',
+      body:
+          'Which endpoints matter most when translating nutrition trials into bedside practice?',
+      topic: QuestionTopic.research,
+      authorName: 'Dr. Hassan Ali',
+      speakerId: hassanId,
+      seedLikes: 18,
+    ),
+    CongressQuestion(
+      id: 'q-general',
+      body: 'Will the closing keynote include a recap of both congress days?',
+      topic: QuestionTopic.general,
+      authorName: 'Congress Committee',
+      speakerId: committeeId,
+      seedLikes: 6,
+    ),
+  ];
+
+  /// Illustrative booths for the Exhibitors shortcut. Not an official directory.
+  static const exhibitors = <CongressExhibitor>[
+    CongressExhibitor(
+      id: 'nutrition-pavilion',
+      name: 'Nutrition Science Pavilion',
+      hall: 'Hall B',
+      focus: 'Pediatric nutrition',
+      summary:
+          'Illustrative booth tied to the pediatric nutrition sessions. This is not a verified exhibitor listing.',
+    ),
+    CongressExhibitor(
+      id: 'research-lounge',
+      name: 'Clinical Research Lounge',
+      hall: 'Hall C',
+      focus: 'Research highlights',
+      summary:
+          'Demo space for discussing translational research talks. Not an official partner booth.',
+    ),
+    CongressExhibitor(
+      id: 'programme-desk',
+      name: 'Programme Host Desk',
+      hall: 'Main Auditorium',
+      focus: 'Congress information',
+      summary:
+          'Placeholder information desk for the assessment app. No external exhibitor links are provided.',
+    ),
+  ];
+
+  static List<CongressResource> get resources {
+    return [
+      CongressResource(
+        id: 'programme',
+        title: 'Congress Scientific Programme',
+        subtitle: 'Complete schedule and session details',
+        kind: ResourceKind.pdf,
+        body: scientificProgrammeSummary(),
+      ),
+      CongressResource(
+        id: 'pediatric-guide',
+        title: 'Pediatric Nutrition Guide',
+        subtitle: 'Clinical reference material',
+        kind: ResourceKind.pdf,
+        body:
+            'Demo summary for the assessment app, not a clinical guideline or downloadable PDF.\n\n'
+            'Tied to Future of Pediatric Nutrition with ${speakerById(sarahId).fullName}.\n\n'
+            'Talking points:\n'
+            '• Personalised feeding plans for different growth patterns\n'
+            '• How session takeaways map to hospital nutrition protocols\n'
+            '• Questions attendees can raise in Ask Q&A\n\n'
+            'This text stays on the device. Nothing is downloaded or opened from the network.',
+      ),
+      CongressResource(
+        id: 'keynote-slides',
+        title: 'Keynote Presentation Slides',
+        subtitle: featuredEvent.title,
+        kind: ResourceKind.slides,
+        body:
+            'Demo slide outline. A real slide deck is not bundled.\n\n'
+            '${featuredEvent.title}\n'
+            '${featuredEvent.dateLabel} · ${featuredEvent.location}\n\n'
+            '1. Opening Ceremony — Congress Committee, Main Auditorium\n'
+            '2. Welcome & Introduction — ${speakerById(hassanId).fullName}\n'
+            '3. Future of Pediatric Nutrition — ${speakerById(sarahId).fullName}\n'
+            '4. Closing Keynote — programme recap\n\n'
+            'Open this outline locally. The app does not fetch slides from a server.',
+      ),
+      CongressResource(
+        id: 'session-recap',
+        title: 'Day 1 Session Recap',
+        subtitle: 'Video is not bundled in this demo',
+        kind: ResourceKind.video,
+        body:
+            'No video file is included with this app.\n\n'
+            'Day 1 outline:\n'
+            '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}\n\n'
+            'Use Agenda for times and rooms. This card does not stream or download media.',
+      ),
+    ];
+  }
+
+  static String scientificProgrammeSummary() {
+    final buffer = StringBuffer()
+      ..writeln('Demo programme summary. Not a downloadable PDF.')
+      ..writeln()
+      ..writeln(featuredEvent.title)
+      ..writeln('${featuredEvent.dateLabel} · ${featuredEvent.location}')
+      ..writeln();
+    for (final day in days) {
+      buffer.writeln(day.dateLong);
+      for (final session in sessionsOn(day.day)) {
+        buffer.writeln(
+          '${session.timeLabel} · ${session.title} · ${speakerName(session)} · ${session.location}',
+        );
+      }
+      buffer.writeln();
+    }
+    buffer.writeln(
+      'Generated from the same local catalog as Home, Agenda and Speakers.',
+    );
+    return buffer.toString().trim();
+  }
+
   static CongressDayInfo infoFor(CongressDay day) {
     return days.firstWhere((info) => info.day == day);
   }
@@ -359,6 +557,24 @@ abstract final class CongressCatalog {
       if (needle.isEmpty) return true;
       final haystack = '${item.label} ${item.description} ${item.categoryLabel}'
           .toLowerCase();
+      return haystack.contains(needle);
+    }).toList();
+  }
+
+  static List<CongressResource> filterResources({
+    ResourceKind? kind,
+    String query = '',
+    Set<String> savedIds = const {},
+    bool savedOnly = false,
+  }) {
+    final needle = query.trim().toLowerCase();
+    return resources.where((resource) {
+      if (savedOnly && !savedIds.contains(resource.id)) return false;
+      if (kind != null && resource.kind != kind) return false;
+      if (needle.isEmpty) return true;
+      final haystack =
+          '${resource.title} ${resource.subtitle} ${resource.kindLabel}'
+              .toLowerCase();
       return haystack.contains(needle);
     }).toList();
   }

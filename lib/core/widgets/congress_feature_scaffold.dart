@@ -14,6 +14,8 @@ class CongressFeatureScaffold extends StatelessWidget {
     this.trailing,
     this.hero,
     this.lightBody = true,
+    this.onBack,
+    this.safeAreaBottom = true,
   });
 
   final String title;
@@ -21,6 +23,8 @@ class CongressFeatureScaffold extends StatelessWidget {
   final Widget? trailing;
   final Widget? hero;
   final bool lightBody;
+  final VoidCallback? onBack;
+  final bool safeAreaBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +37,7 @@ class CongressFeatureScaffold extends StatelessWidget {
           Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
+              bottom: safeAreaBottom,
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
@@ -47,7 +52,7 @@ class CongressFeatureScaffold extends StatelessWidget {
                             _HeaderButton(
                               icon: Icons.chevron_left_rounded,
                               tooltip: 'Back',
-                              onPressed: () => context.pop(),
+                              onPressed: onBack ?? () => context.pop(),
                             ),
                             Expanded(
                               child: Text(

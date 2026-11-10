@@ -1,16 +1,20 @@
 import 'package:go_router/go_router.dart';
 
 import '../core/widgets/main_shell.dart';
-import '../core/widgets/placeholder_screen.dart';
 import '../features/agenda/agenda_screen.dart';
 import '../features/auth/login/login_screen.dart';
 import '../features/auth/register/register_screen.dart';
 import '../features/auth/state/auth_controller.dart';
+import '../features/exhibitors/exhibitors_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/name_tag/name_tag_screen.dart';
+import '../features/profile/profile_screen.dart';
+import '../features/qa/qa_screen.dart';
 import '../features/quick_access/quick_access_screen.dart';
+import '../features/resources/resources_screen.dart';
 import '../features/speakers/speakers_screen.dart';
 import '../features/venue/venue_screen.dart';
+import '../features/voting/voting_screen.dart';
 import 'app_routes.dart';
 
 GoRouter createRouter(AuthController authController) {
@@ -57,10 +61,7 @@ GoRouter createRouter(AuthController authController) {
               GoRoute(
                 path: AppRoutes.profile,
                 name: 'profile',
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'My Profile',
-                  showBack: false,
-                ),
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),
@@ -91,25 +92,26 @@ GoRouter createRouter(AuthController authController) {
         name: 'venue',
         builder: (context, state) => const VenueScreen(),
       ),
-      ..._stackedPlaceholderRoutes(),
+      GoRoute(
+        path: AppRoutes.voting,
+        name: 'voting',
+        builder: (context, state) => const VotingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.qa,
+        name: 'qa',
+        builder: (context, state) => const QaScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resources,
+        name: 'resources',
+        builder: (context, state) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.exhibitors,
+        name: 'exhibitors',
+        builder: (context, state) => const ExhibitorsScreen(),
+      ),
     ],
   );
-}
-
-List<RouteBase> _stackedPlaceholderRoutes() {
-  const destinations = <(String, String, String)>[
-    (AppRoutes.voting, 'voting', 'Live Voting'),
-    (AppRoutes.qa, 'qa', 'Ask Q&A'),
-    (AppRoutes.resources, 'resources', 'Resources'),
-    (AppRoutes.exhibitors, 'exhibitors', 'Exhibitors'),
-  ];
-
-  return [
-    for (final destination in destinations)
-      GoRoute(
-        path: destination.$1,
-        name: destination.$2,
-        builder: (context, state) => PlaceholderScreen(title: destination.$3),
-      ),
-  ];
 }

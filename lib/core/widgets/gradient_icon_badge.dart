@@ -8,11 +8,13 @@ class GradientIconBadge extends StatelessWidget {
     required this.icon,
     this.size = 48,
     this.iconSize = 24,
+    this.gradient = AppColors.primaryButton,
   });
 
   final IconData icon;
   final double size;
   final double iconSize;
+  final LinearGradient gradient;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class GradientIconBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryButton,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Icon(icon, color: Colors.white, size: iconSize),

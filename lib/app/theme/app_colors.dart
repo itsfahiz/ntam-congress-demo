@@ -40,6 +40,12 @@ abstract final class AppColors {
     colors: [gradientStart, gradientEnd],
   );
 
+  static const LinearGradient goldBadge = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFFD36A), Color(0xFFF5A623)],
+  );
+
   static const LinearGradient nightSky = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
