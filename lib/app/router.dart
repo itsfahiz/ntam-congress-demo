@@ -7,7 +7,10 @@ import '../features/auth/login/login_screen.dart';
 import '../features/auth/register/register_screen.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/home/home_screen.dart';
+import '../features/name_tag/name_tag_screen.dart';
 import '../features/quick_access/quick_access_screen.dart';
+import '../features/speakers/speakers_screen.dart';
+import '../features/venue/venue_screen.dart';
 import 'app_routes.dart';
 
 GoRouter createRouter(AuthController authController) {
@@ -73,6 +76,21 @@ GoRouter createRouter(AuthController authController) {
         name: 'agenda',
         builder: (context, state) => const AgendaScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.speakers,
+        name: 'speakers',
+        builder: (context, state) => const SpeakersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.nameTag,
+        name: 'nameTag',
+        builder: (context, state) => const NameTagScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.venue,
+        name: 'venue',
+        builder: (context, state) => const VenueScreen(),
+      ),
       ..._stackedPlaceholderRoutes(),
     ],
   );
@@ -80,9 +98,6 @@ GoRouter createRouter(AuthController authController) {
 
 List<RouteBase> _stackedPlaceholderRoutes() {
   const destinations = <(String, String, String)>[
-    (AppRoutes.speakers, 'speakers', 'Speakers'),
-    (AppRoutes.nameTag, 'nameTag', 'My Name Tag'),
-    (AppRoutes.venue, 'venue', 'Venue'),
     (AppRoutes.voting, 'voting', 'Live Voting'),
     (AppRoutes.qa, 'qa', 'Ask Q&A'),
     (AppRoutes.resources, 'resources', 'Resources'),

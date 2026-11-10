@@ -13,12 +13,14 @@ class CongressFeatureScaffold extends StatelessWidget {
     required this.body,
     this.trailing,
     this.hero,
+    this.lightBody = true,
   });
 
   final String title;
   final Widget body;
   final Widget? trailing;
   final Widget? hero;
+  final bool lightBody;
 
   @override
   Widget build(BuildContext context) {
@@ -69,20 +71,22 @@ class CongressFeatureScaffold extends StatelessWidget {
                         ),
                       const SizedBox(height: 16),
                       Expanded(
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                            child: LightSheet(child: body),
-                          ),
-                        ),
+                        child: lightBody
+                            ? DecoratedBox(
+                                decoration: const BoxDecoration(
+                                  color: AppColors.card,
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(28),
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(28),
+                                  ),
+                                  child: LightSheet(child: body),
+                                ),
+                              )
+                            : body,
                       ),
                     ],
                   ),
@@ -91,6 +95,39 @@ class CongressFeatureScaffold extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CongressGoldHeaderButton extends StatelessWidget {
+  const CongressGoldHeaderButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: AppColors.gold,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Icon(icon, color: AppColors.navyDeep),
+          ),
+        ),
       ),
     );
   }

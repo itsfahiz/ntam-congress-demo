@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/light_sheet.dart';
+import '../../congress/data/congress_catalog.dart';
 import '../../congress/domain/congress_models.dart';
 
 Future<void> showSessionDetailSheet(
@@ -46,7 +47,7 @@ Future<void> showSessionDetailSheet(
                 ),
                 _DetailRow(
                   icon: Icons.person_outline_rounded,
-                  label: session.speaker,
+                  label: CongressCatalog.speakerName(session),
                 ),
                 _DetailRow(
                   icon: Icons.location_on_outlined,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../congress/data/congress_catalog.dart';
 import '../../congress/domain/congress_models.dart';
 
 class AgendaSessionCard extends StatelessWidget {
@@ -121,7 +122,7 @@ class AgendaSessionCard extends StatelessWidget {
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
-                            session.pinLabel,
+                            CongressCatalog.sessionPinLabel(session),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

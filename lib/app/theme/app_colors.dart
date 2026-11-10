@@ -33,6 +33,8 @@ abstract final class AppColors {
   static const researchWash = Color(0xFFEEF0FF);
   static const nutritionAccent = Color(0xFF1DBF73);
   static const researchAccent = Color(0xFF6B7CFF);
+  static const mapWash = Color(0xFFE7F2FF);
+  static const mapDeep = Color(0xFFD5E8FF);
 
   static const LinearGradient primaryButton = LinearGradient(
     colors: [gradientStart, gradientEnd],

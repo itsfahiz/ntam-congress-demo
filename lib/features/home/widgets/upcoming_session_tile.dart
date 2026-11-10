@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../congress/data/congress_catalog.dart';
 import '../../congress/domain/congress_models.dart';
 
 class UpcomingSessionTile extends StatelessWidget {
@@ -53,7 +54,7 @@ class UpcomingSessionTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${session.trackLabel} · ${session.speaker}',
+                      '${session.trackLabel} · ${CongressCatalog.speakerName(session)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

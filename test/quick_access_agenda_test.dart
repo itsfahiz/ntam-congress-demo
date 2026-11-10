@@ -44,10 +44,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Speakers'), findsWidgets);
-    expect(
-      find.text('This screen is routed and ready to implement.'),
-      findsOneWidget,
-    );
+    expect(find.text('Global Medical Experts'), findsOneWidget);
+    expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
