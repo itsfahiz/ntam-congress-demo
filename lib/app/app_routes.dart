@@ -1,0 +1,15 @@
+abstract final class AppRoutes {
+  static const login = '/login';
+  static const register = '/register';
+  static const home = '/home';
+  static const profile = '/profile';
+  static const quickAccess = '/quick-access';
+  static const agenda = '/agenda';
+  static const speakers = '/speakers';
+  static const nameTag = '/name-tag';
+  static const venue = '/venue';
+  static const voting = '/voting';
+  static const qa = '/qa';
+  static const resources = '/resources';
+  static const exhibitors = '/exhibitors';
+}

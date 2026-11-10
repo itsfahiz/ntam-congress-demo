@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+
+/// Visual tokens sampled from the Nestlé Medical Congress reference screens.
+abstract final class AppColors {
+  static const navyDeep = Color(0xFF04122F);
+  static const navy = Color(0xFF071B48);
+  static const navyGlow = Color(0xFF1A4C9C);
+
+  static const gold = Color(0xFFF0C14B);
+
+  static const accentBlue = Color(0xFF2F6BFF);
+  static const gradientStart = Color(0xFF1A4DFF);
+  static const gradientEnd = Color(0xFF4EC8FF);
+  static const googleBlue = Color(0xFF4285F4);
+
+  static const card = Color(0xFFF6F7FC);
+  static const fieldFill = Color(0xFFFFFFFF);
+  static const fieldBorder = Color(0xFFE6EAF3);
+  static const textPrimary = Color(0xFF14213D);
+  static const textSecondary = Color(0xFF7B8499);
+  static const iconBlue = Color(0xFF2F6CFF);
+
+  static const error = Color(0xFFD64545);
+  static const notice = Color(0xFFE5484D);
+
+  static const LinearGradient primaryButton = LinearGradient(
+    colors: [gradientStart, gradientEnd],
+  );
+
+  static const LinearGradient nightSky = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF0A2460), Color(0xFF071B48), Color(0xFF030D28)],
+  );
+}
+
+abstract final class AppSizes {
+  static const xxs = 4.0;
+  static const xs = 8.0;
+  static const sm = 12.0;
+  static const md = 16.0;
+  static const lg = 24.0;
+  static const xl = 32.0;
+  static const xxl = 40.0;
+
+  static const radiusSm = 12.0;
+  static const radiusMd = 16.0;
+  static const radiusLg = 24.0;
+  static const radiusXl = 28.0;
+  static const radiusPill = 999.0;
+
+  static const maxContentWidth = 440.0;
+}
