@@ -2,10 +2,12 @@ import 'package:go_router/go_router.dart';
 
 import '../core/widgets/main_shell.dart';
 import '../core/widgets/placeholder_screen.dart';
+import '../features/agenda/agenda_screen.dart';
 import '../features/auth/login/login_screen.dart';
 import '../features/auth/register/register_screen.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/home/home_screen.dart';
+import '../features/quick_access/quick_access_screen.dart';
 import 'app_routes.dart';
 
 GoRouter createRouter(AuthController authController) {
@@ -61,15 +63,23 @@ GoRouter createRouter(AuthController authController) {
           ),
         ],
       ),
-      ..._stackedFeatureRoutes(),
+      GoRoute(
+        path: AppRoutes.quickAccess,
+        name: 'quickAccess',
+        builder: (context, state) => const QuickAccessScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agenda,
+        name: 'agenda',
+        builder: (context, state) => const AgendaScreen(),
+      ),
+      ..._stackedPlaceholderRoutes(),
     ],
   );
 }
 
-List<RouteBase> _stackedFeatureRoutes() {
+List<RouteBase> _stackedPlaceholderRoutes() {
   const destinations = <(String, String, String)>[
-    (AppRoutes.quickAccess, 'quickAccess', 'Quick Access'),
-    (AppRoutes.agenda, 'agenda', 'Congress Agenda'),
     (AppRoutes.speakers, 'speakers', 'Speakers'),
     (AppRoutes.nameTag, 'nameTag', 'My Name Tag'),
     (AppRoutes.venue, 'venue', 'Venue'),

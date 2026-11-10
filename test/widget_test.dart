@@ -114,9 +114,7 @@ void main() {
     expect(find.text('Quick Access'), findsOneWidget);
   });
 
-  testWidgets('Home Agenda shortcut opens the Agenda placeholder', (
-    tester,
-  ) async {
+  testWidgets('Home Agenda shortcut opens the Agenda screen', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
@@ -124,5 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Congress Agenda'), findsWidgets);
+    expect(find.text("Today's Sessions"), findsOneWidget);
+    expect(find.text('Opening Ceremony'), findsOneWidget);
   });
 }

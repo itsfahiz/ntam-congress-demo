@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+
+import '../../app/theme/app_colors.dart';
+import '../../core/widgets/congress_feature_scaffold.dart';
+import '../../core/widgets/congress_filter_chips.dart';
+import '../../core/widgets/light_search_field.dart';
+import '../congress/data/congress_catalog.dart';
+import '../congress/domain/congress_models.dart';
+import 'widgets/agenda_day_selector.dart';
+import 'widgets/agenda_session_card.dart';
+import 'widgets/session_detail_sheet.dart';
+
+class AgendaScreen extends StatefulWidget {
+  const AgendaScreen({super.key});
+
+  @override
+  State<AgendaScreen> createState() => _AgendaScreenState();
+}
+
+class _AgendaScreenState extends State<AgendaScreen> {
+  final _searchController = TextEditingController();
+  final _bookmarkedIds = <String>{};
+  CongressDay _day = CongressDay.day1;
+  SessionTrack? _track;
+  bool _searchOpen = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  CongressDayInfo get _dayInfo => CongressCatalog.infoFor(_day);
+
+  List<CongressSession> get _visibleSessions {
+    return CongressCatalog.filterSessions(
+      day: _day,
+      track: _track,
+      query: _searchController.text,
+    );
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _day = CongressDay.day1;
+      _track = null;
+      _searchOpen = false;
+      _searchController.clear();
+    });
+  }
+
+  void _toggleBookmark(String id) {
+    setState(() {
+      if (!_bookmarkedIds.add(id)) {
+        _bookmarkedIds.remove(id);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sessions = _visibleSessions;
+
+    return CongressFeatureScaffold(
+      title: 'Congress Agenda',
+      trailing: CongressHeaderButton(
+        icon: Icons.search_rounded,
+        tooltip: 'Search',
+        onPressed: () => setState(() => _searchOpen = !_searchOpen),
+      ),
+      hero: Column(
+        children: [
+          _ScheduleBanner(info: _dayInfo),
+          const SizedBox(height: 14),
+          AgendaDaySelector(
+            selected: _day,
+            onSelected: (day) => setState(() => _day = day),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Today's Sessions",
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _resetFilters,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Reset'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.navyChip,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_searchOpen)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              child: LightSearchField(
+                controller: _searchController,
+                hintText: 'Search sessions, speakers, halls',
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+            child: CongressFilterChips<SessionTrack>(
+              selected: _track,
+              onSelected: (value) => setState(() => _track = value),
+              options: const [
+                FilterChipOption(value: null, label: 'All'),
+                FilterChipOption(value: SessionTrack.keynote, label: 'Keynote'),
+                FilterChipOption(
+                  value: SessionTrack.nutrition,
+                  label: 'Nutrition',
+                ),
+                FilterChipOption(
+                  value: SessionTrack.research,
+                  label: 'Research',
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: sessions.isEmpty
+                ? const _EmptySessions()
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    itemCount: sessions.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final session = sessions[index];
+                      return AgendaSessionCard(
+                        session: session,
+                        bookmarked: _bookmarkedIds.contains(session.id),
+                        onTap: () =>
+                            showSessionDetailSheet(context, session: session),
+                        onBookmark: () => _toggleBookmark(session.id),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScheduleBanner extends StatelessWidget {
+  const _ScheduleBanner({required this.info});
+
+  final CongressDayInfo info;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: AppColors.gold,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.calendar_month_rounded,
+            color: AppColors.navyDeep,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                info.headline,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                info.dateLong,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptySessions extends StatelessWidget {
+  const _EmptySessions();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Text(
+          'No sessions match this day, track or search.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+      ),
+    );
+  }
+}

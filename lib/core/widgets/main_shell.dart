@@ -10,41 +10,50 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Column (not Scaffold.bottomNavigationBar) so Home cannot paint under the tabs.
     return Scaffold(
       backgroundColor: AppColors.navyDeep,
-      extendBody: false,
-      body: navigationShell,
-      bottomNavigationBar: Material(
-        color: AppColors.navyDeep,
-        elevation: 12,
-        shadowColor: Colors.black54,
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _ShellTab(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    selected: navigationShell.currentIndex == 0,
-                    onTap: () => navigationShell.goBranch(0),
+      body: Column(
+        children: [
+          Expanded(child: ClipRect(child: navigationShell)),
+          Material(
+            color: AppColors.navyDeep,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _ShellTab(
+                          icon: Icons.home_rounded,
+                          label: 'Home',
+                          selected: navigationShell.currentIndex == 0,
+                          onTap: () => navigationShell.goBranch(0),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ShellTab(
+                          icon: Icons.person_rounded,
+                          label: 'Profile',
+                          selected: navigationShell.currentIndex == 1,
+                          onTap: () => navigationShell.goBranch(1),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ShellTab(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    selected: navigationShell.currentIndex == 1,
-                    onTap: () => navigationShell.goBranch(1),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

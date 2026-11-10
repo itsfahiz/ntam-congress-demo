@@ -3,14 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
-import '../data/home_mock_data.dart';
+import '../../congress/data/congress_catalog.dart';
 
 class FeaturedEventCard extends StatelessWidget {
   const FeaturedEventCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final event = HomeMockData.featuredEvent;
+    final event = CongressCatalog.featuredEvent;
 
     return Material(
       color: Colors.white.withValues(alpha: 0.07),

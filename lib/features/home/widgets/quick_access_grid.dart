@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
-import '../data/home_mock_data.dart';
+import '../../congress/data/congress_catalog.dart';
 
 class QuickAccessGrid extends StatelessWidget {
   const QuickAccessGrid({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final items = HomeMockData.quickAccessItems;
+    final items = CongressCatalog.quickAccessItems;
 
     return GridView.builder(
       itemCount: items.length,
@@ -34,7 +34,7 @@ class QuickAccessGrid extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(item.iconData, color: AppColors.gradientEnd, size: 26),
+                  Icon(item.icon, color: AppColors.gradientEnd, size: 26),
                   const SizedBox(height: 8),
                   Text(
                     item.label,

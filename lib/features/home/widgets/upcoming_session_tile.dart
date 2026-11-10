@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
-import '../domain/home_models.dart';
+import '../../congress/domain/congress_models.dart';
 
 class UpcomingSessionTile extends StatelessWidget {
   const UpcomingSessionTile({

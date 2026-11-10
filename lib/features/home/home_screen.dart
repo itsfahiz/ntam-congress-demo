@@ -8,8 +8,9 @@ import '../../core/widgets/congress_background.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../auth/domain/attendee.dart';
 import '../auth/state/auth_controller.dart';
+import '../congress/data/congress_catalog.dart';
+import '../congress/domain/congress_models.dart';
 import 'data/home_mock_data.dart';
-import 'domain/home_models.dart';
 import 'widgets/featured_event_card.dart';
 import 'widgets/home_search_bar.dart';
 import 'widgets/quick_access_grid.dart';
@@ -34,16 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<CongressSession> get _visibleSessions {
     final query = _searchController.text.trim().toLowerCase();
-    return HomeMockData.sessions.where((session) {
-      final matchesTrack =
-          _trackFilter == null || session.track == _trackFilter;
-      if (!matchesTrack) return false;
-      if (query.isEmpty) return true;
-      final haystack =
-          '${session.title} ${session.speaker} ${session.trackLabel} ${session.location}'
-              .toLowerCase();
-      return haystack.contains(query);
-    }).toList();
+    return CongressCatalog.filterSessions(
+      day: CongressDay.day1,
+      track: _trackFilter,
+      query: query,
+    );
   }
 
   Future<void> _pickFilter() async {
@@ -159,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const CongressBackground(),
           SafeArea(
+            bottom: false,
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
@@ -232,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     else
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
                         sliver: SliverList.separated(
                           itemCount: sessions.length,
                           separatorBuilder: (_, _) =>
