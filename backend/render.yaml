@@ -1,0 +1,15 @@
+# Use this file if the Render service root directory is `backend/`.
+# Otherwise set Root Directory to backend and apply the same build/start commands in the dashboard.
+
+services:
+  - type: web
+    name: ntam-congress-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: '*'
