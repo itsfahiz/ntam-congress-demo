@@ -8,15 +8,55 @@ import '../../core/widgets/demo_limitation_sheet.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../auth/state/auth_controller.dart';
 import '../congress/data/congress_catalog.dart';
-import 'demo_badge_qr.dart';
+import 'data/badge_qr_repository.dart';
 
-class NameTagScreen extends StatelessWidget {
+class NameTagScreen extends StatefulWidget {
   const NameTagScreen({super.key});
+
+  @override
+  State<NameTagScreen> createState() => _NameTagScreenState();
+}
+
+class _NameTagScreenState extends State<NameTagScreen> {
+  String? _requestedFor;
+  String? _verifyUrl;
+  String? _error;
+  var _loading = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final attendee = AuthScope.of(context).attendee;
+    if (attendee == null) return;
+    if (_requestedFor == attendee.id) return;
+    _requestedFor = attendee.id;
+    _loading = true;
+    _error = null;
+    _verifyUrl = null;
+    final repository = BadgeQrScope.of(context);
+    repository
+        .issueVerifyUrl()
+        .then((url) {
+          if (!mounted || _requestedFor != attendee.id) return;
+          setState(() {
+            _verifyUrl = url;
+            _loading = false;
+          });
+        })
+        .catchError((Object error) {
+          if (!mounted || _requestedFor != attendee.id) return;
+          setState(() {
+            _error = error is BadgeQrException
+                ? error.message
+                : 'Could not load your verification badge.';
+            _loading = false;
+          });
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
     final attendee = AuthScope.of(context).attendee;
-    final payload = attendee == null ? '' : DemoBadgeQr.payloadFor(attendee);
 
     return CongressFeatureScaffold(
       title: 'My Name Tag',
@@ -146,53 +186,10 @@ class NameTagScreen extends StatelessWidget {
                               value: CongressCatalog.venue.dateLabel,
                             ),
                             const SizedBox(height: 24),
-                            Semantics(
-                              label: 'Demo badge QR code',
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEEF1F6),
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(14),
-                                      child: QrImageView(
-                                        key: ValueKey(payload),
-                                        data: payload,
-                                        size: 196,
-                                        padding: EdgeInsets.zero,
-                                        backgroundColor: Colors.white,
-                                        eyeStyle: const QrEyeStyle(
-                                          eyeShape: QrEyeShape.square,
-                                          color: AppColors.navyDeep,
-                                        ),
-                                        dataModuleStyle:
-                                            const QrDataModuleStyle(
-                                              dataModuleShape:
-                                                  QrDataModuleShape.square,
-                                              color: AppColors.navyDeep,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Demo badge',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                                height: 1.3,
-                              ),
+                            _VerificationQr(
+                              verifyUrl: _verifyUrl,
+                              loading: _loading,
+                              error: _error,
                             ),
                           ],
                         ),
@@ -202,6 +199,104 @@ class NameTagScreen extends StatelessWidget {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _VerificationQr extends StatelessWidget {
+  const _VerificationQr({
+    required this.verifyUrl,
+    required this.loading,
+    required this.error,
+  });
+
+  final String? verifyUrl;
+  final bool loading;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Semantics(
+          label: loading
+              ? 'Loading attendee verification QR code'
+              : error != null
+              ? 'Could not load attendee verification QR code'
+              : 'Attendee verification QR code',
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF1F6),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 196,
+                    height: 196,
+                    child: _body(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          error ??
+              (loading ? 'Loading verification code' : 'Scan to verify attendee'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            height: 1.3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _body() {
+    if (loading) {
+      return const Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(strokeWidth: 2.4),
+        ),
+      );
+    }
+    final url = verifyUrl;
+    if (error != null || url == null || url.isEmpty) {
+      return const Center(
+        child: Icon(
+          Icons.error_outline_rounded,
+          size: 40,
+          color: AppColors.textSecondary,
+        ),
+      );
+    }
+    return QrImageView(
+      key: ValueKey<String>(url),
+      data: url,
+      size: 196,
+      padding: EdgeInsets.zero,
+      backgroundColor: Colors.white,
+      eyeStyle: const QrEyeStyle(
+        eyeShape: QrEyeShape.square,
+        color: AppColors.navyDeep,
+      ),
+      dataModuleStyle: const QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: AppColors.navyDeep,
+      ),
     );
   }
 }

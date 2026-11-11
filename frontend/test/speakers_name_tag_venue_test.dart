@@ -3,7 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:ntam_congress_demo/app/congress_app.dart';
-import 'package:ntam_congress_demo/features/name_tag/demo_badge_qr.dart';
+import 'package:ntam_congress_demo/features/name_tag/data/badge_qr_repository.dart';
+import 'package:ntam_congress_demo/features/name_tag/data/mock_badge_qr_repository.dart';
+
+import 'support/home_shortcuts.dart';
+
+class _FailingBadgeQrRepository implements BadgeQrRepository {
+  @override
+  Future<String> issueVerifyUrl() async {
+    throw const BadgeQrException('Could not load your verification badge.');
+  }
+}
 
 void main() {
   Future<void> pumpPhoneApp(WidgetTester tester) async {
@@ -33,8 +43,7 @@ void main() {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
-    await tester.tap(find.text('Speakers'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Speakers');
 
     expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
     expect(find.text('Dr. Hassan Ali'), findsOneWidget);
@@ -59,8 +68,7 @@ void main() {
   testWidgets('Speaker detail lists catalog sessions', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
-    await tester.tap(find.text('Speakers'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Speakers');
 
     await tester.tap(find.text('Dr. Sarah Johnson'));
     await tester.pumpAndSettle();
@@ -73,13 +81,12 @@ void main() {
     );
   });
 
-  testWidgets('Name Tag shows demo attendee and demo QR payload', (
+  testWidgets('Name Tag shows signed-in attendee and verification QR', (
     tester,
   ) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
-    await tester.tap(find.text('Name Tag'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Name Tag');
 
     expect(find.text('Huda Latheef'), findsOneWidget);
     expect(find.text('NTAM · Medical Congress Attendee'), findsOneWidget);
@@ -91,14 +98,15 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('NMC-2026-001'), findsOneWidget);
-    expect(find.text('Demo badge'), findsOneWidget);
+    expect(find.text('Scan to verify attendee'), findsOneWidget);
+    expect(find.text('Demo badge'), findsNothing);
 
     final qr = tester.widget<QrImageView>(find.byType(QrImageView));
-    expect((qr.key as ValueKey<String>).value, 'NMC-DEMO-BADGE:NMC-2026-001');
-    expect(
-      DemoBadgeQr.isDemoPayload((qr.key as ValueKey<String>).value),
-      isTrue,
-    );
+    final payload = (qr.key as ValueKey<String>).value;
+    expect(payload, MockBadgeQrRepository.urlFor('NMC-2026-001'));
+    expect(payload, startsWith('https://'));
+    expect(payload, contains('/badge/verify?b=NMC-2026-001'));
+    expect(payload.contains('huda@example.com'), isFalse);
   });
 
   testWidgets('Registered attendee name and badge id appear on Name Tag', (
@@ -144,8 +152,7 @@ void main() {
     await tester.tap(find.text('Create Account'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Name Tag'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Name Tag');
 
     expect(find.text('Amira Hassan'), findsOneWidget);
     expect(
@@ -159,15 +166,38 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('NMC-2026-002'), findsOneWidget);
+    expect(find.text('Scan to verify attendee'), findsOneWidget);
     final qr = tester.widget<QrImageView>(find.byType(QrImageView));
-    expect((qr.key as ValueKey<String>).value, 'NMC-DEMO-BADGE:NMC-2026-002');
+    expect(
+      (qr.key as ValueKey<String>).value,
+      MockBadgeQrRepository.urlFor('NMC-2026-002'),
+    );
+  });
+
+  testWidgets('Name Tag shows an error and no QR when issuance fails', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      CongressApp(badgeQrRepository: _FailingBadgeQrRepository()),
+    );
+    await tester.pumpAndSettle();
+    await signInAsDemo(tester);
+    await tapHomeShortcut(tester, 'Name Tag');
+
+    expect(find.text('Huda Latheef'), findsOneWidget);
+    expect(find.text('NMC-2026-001'), findsOneWidget);
+    expect(find.text('Could not load your verification badge.'), findsOneWidget);
+    expect(find.byType(QrImageView), findsNothing);
+    expect(find.text('Demo badge'), findsNothing);
   });
 
   testWidgets('Venue shows reference copy and demo disclaimer', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
-    await tester.tap(find.text('Venue'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Venue');
 
     expect(
       find.text('Dubai International Convention & Exhibition Center'),
