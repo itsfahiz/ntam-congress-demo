@@ -221,6 +221,10 @@ class CongressQuestion {
     this.speakerId,
     this.answered = false,
     this.localSubmission = false,
+    this.likeCount = 0,
+    this.likedByMe = false,
+    this.replyCount = 0,
+    this.createdAt,
   });
 
   final String id;
@@ -231,6 +235,53 @@ class CongressQuestion {
   final String? speakerId;
   final bool answered;
   final bool localSubmission;
+  final int likeCount;
+  final bool likedByMe;
+  final int replyCount;
+  final DateTime? createdAt;
+
+  CongressQuestion copyWith({
+    int? likeCount,
+    bool? likedByMe,
+    int? replyCount,
+    bool? answered,
+  }) {
+    return CongressQuestion(
+      id: id,
+      body: body,
+      topic: topic,
+      authorName: authorName,
+      seedLikes: seedLikes,
+      speakerId: speakerId,
+      answered: answered ?? this.answered,
+      localSubmission: localSubmission,
+      likeCount: likeCount ?? this.likeCount,
+      likedByMe: likedByMe ?? this.likedByMe,
+      replyCount: replyCount ?? this.replyCount,
+      createdAt: createdAt,
+    );
+  }
+
+  CongressQuestion withInteraction({
+    required int likeCount,
+    required bool likedByMe,
+    required int replyCount,
+  }) {
+    return CongressQuestion(
+      id: id,
+      body: body,
+      topic: topic,
+      authorName: authorName,
+      seedLikes: seedLikes,
+      speakerId: speakerId,
+      answered: answered,
+      localSubmission: localSubmission,
+      likeCount: likeCount,
+      likedByMe: likedByMe,
+      replyCount: replyCount,
+      createdAt: createdAt,
+    );
+  }
 
   String get topicLabel => switch (topic) {
     QuestionTopic.general => 'General',

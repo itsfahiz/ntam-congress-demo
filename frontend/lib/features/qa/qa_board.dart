@@ -1,17 +1,15 @@
 import '../congress/domain/congress_models.dart';
 
 class QaBoard {
-  QaBoard({required List<CongressQuestion> seeded})
-    : _seeded = List<CongressQuestion>.from(seeded);
+  QaBoard();
 
   static const minLength = 12;
   static const maxLength = 240;
+  static const replyMinLength = 2;
+  static const replyMaxLength = 240;
 
-  final List<CongressQuestion> _seeded;
   final List<CongressQuestion> submitted = [];
-  final Set<String> likedIds = {};
   var sort = QuestionSort.recent;
-  var _nextId = 1;
 
   String? validate(String raw) {
     final text = raw.trim();
@@ -25,50 +23,60 @@ class QaBoard {
     return null;
   }
 
-  CongressQuestion? submit({
-    required String body,
-    required QuestionTopic topic,
-    required String authorName,
-  }) {
-    if (validate(body) != null) return null;
-    final question = CongressQuestion(
-      id: 'local-$_nextId',
-      body: body.trim(),
-      topic: topic,
-      authorName: authorName,
-      seedLikes: 0,
-      localSubmission: true,
-    );
-    _nextId += 1;
+  String? validateReply(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return 'Enter a reply before submitting.';
+    if (text.length < replyMinLength) {
+      return 'Add a bit more detail (at least $replyMinLength characters).';
+    }
+    if (text.length > replyMaxLength) {
+      return 'Keep replies to $replyMaxLength characters.';
+    }
+    return null;
+  }
+
+  void replaceSubmitted(List<CongressQuestion> questions) {
+    submitted
+      ..clear()
+      ..addAll(questions);
+  }
+
+  void addRemote(CongressQuestion question) {
+    submitted.removeWhere((item) => item.id == question.id);
     submitted.insert(0, question);
     sort = QuestionSort.recent;
-    return question;
   }
 
-  void toggleLike(String id) {
-    if (!likedIds.add(id)) {
-      likedIds.remove(id);
+  void replaceOne(CongressQuestion question) {
+    final index = submitted.indexWhere((item) => item.id == question.id);
+    if (index >= 0) {
+      submitted[index] = question;
+      return;
     }
-  }
-
-  int likesFor(CongressQuestion question) {
-    final extra = likedIds.contains(question.id) ? 1 : 0;
-    return question.seedLikes + extra;
+    submitted.insert(0, question);
   }
 
   List<CongressQuestion> get visible {
-    var items = <CongressQuestion>[...submitted, ..._seeded];
-    if (sort == QuestionSort.answered) {
-      items = items.where((question) => question.answered).toList();
-    }
     switch (sort) {
       case QuestionSort.popular:
-        items.sort((a, b) => likesFor(b).compareTo(likesFor(a)));
+        final items = List<CongressQuestion>.from(submitted);
+        items.sort((a, b) {
+          final likes = b.likeCount.compareTo(a.likeCount);
+          if (likes != 0) return likes;
+          return _createdAt(b).compareTo(_createdAt(a));
+        });
+        return items;
       case QuestionSort.recent:
-        break;
+        return List<CongressQuestion>.from(submitted);
       case QuestionSort.answered:
-        items.sort((a, b) => likesFor(b).compareTo(likesFor(a)));
+        return [
+          for (final question in submitted)
+            if (question.answered) question,
+        ];
     }
-    return items;
+  }
+
+  int _createdAt(CongressQuestion question) {
+    return question.createdAt?.millisecondsSinceEpoch ?? 0;
   }
 }

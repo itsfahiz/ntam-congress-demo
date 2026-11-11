@@ -5,12 +5,12 @@ import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_filter_chips.dart';
 import '../../core/widgets/congress_hero_banner.dart';
-import '../../core/widgets/demo_limitation_sheet.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../auth/state/auth_controller.dart';
-import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
+import 'data/http_questions_repository.dart';
+import 'data/questions_repository.dart';
 import 'qa_board.dart';
 
 class QaScreen extends StatefulWidget {
@@ -25,21 +25,36 @@ class _QaScreenState extends State<QaScreen> {
   final _questionFocus = FocusNode();
   final _composerKey = GlobalKey();
   final _submitKey = GlobalKey();
+  final _replySendKey = GlobalKey();
   late final QaBoard _board;
+  final _replyController = TextEditingController();
   var _topic = QuestionTopic.general;
   String? _error;
+  String? _loadError;
+  String? _replyError;
+  String? _openRepliesId;
+  String? _likingId;
+  var _loading = false;
+  var _submitting = false;
+  var _replySubmitting = false;
+  final _replies = <String, List<QuestionReply>>{};
+  final _loadingReplies = <String>{};
+
+  QuestionsRepository get _repository => QuestionsScope.of(context);
 
   @override
   void initState() {
     super.initState();
-    _board = QaBoard(seeded: CongressCatalog.questions);
+    _board = QaBoard();
     _questionFocus.addListener(_onComposerFocus);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   @override
   void dispose() {
     _questionFocus.removeListener(_onComposerFocus);
     _questionController.dispose();
+    _replyController.dispose();
     _questionFocus.dispose();
     super.dispose();
   }
@@ -68,7 +83,35 @@ class _QaScreenState extends State<QaScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final questions = await _repository.list();
+      if (!mounted) return;
+      setState(() {
+        _board.replaceSubmitted(questions);
+        _loading = false;
+      });
+    } on QuestionsException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error.message;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = 'Could not load live questions.';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
     final attendee = AuthScope.of(context).attendee;
     final author = attendee?.fullName ?? 'Attendee';
     final error = _board.validate(_questionController.text);
@@ -79,17 +122,159 @@ class _QaScreenState extends State<QaScreen> {
 
     setState(() {
       _error = null;
-      _board.submit(
+      _submitting = true;
+    });
+    try {
+      final question = await _repository.create(
         body: _questionController.text,
         topic: _topic,
         authorName: author,
       );
-      _questionController.clear();
+      if (!mounted) return;
+      setState(() {
+        _board.addRemote(question);
+        _questionController.clear();
+        _submitting = false;
+      });
+      _questionFocus.unfocus();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Question added')));
+    } on QuestionsException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error.message;
+        _submitting = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'The question was not saved. Try again.';
+        _submitting = false;
+      });
+    }
+  }
+
+  Future<void> _toggleLike(CongressQuestion question) async {
+    if (_likingId != null) return;
+    setState(() => _likingId = question.id);
+    try {
+      final updated = question.likedByMe
+          ? await _repository.unlike(question.id)
+          : await _repository.like(question.id);
+      if (!mounted) return;
+      setState(() {
+        _board.replaceOne(updated);
+        _likingId = null;
+      });
+    } on QuestionsException catch (error) {
+      if (!mounted) return;
+      setState(() => _likingId = null);
+      _showNotice(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _likingId = null);
+      _showNotice('Could not update the like. Try again.');
+    }
+  }
+
+  Future<void> _toggleReplies(CongressQuestion question) async {
+    if (_openRepliesId == question.id) {
+      setState(() {
+        _openRepliesId = null;
+        _replyError = null;
+      });
+      return;
+    }
+    setState(() {
+      _openRepliesId = question.id;
+      _replyError = null;
+      _replyController.clear();
     });
-    _questionFocus.unfocus();
-    ScaffoldMessenger.of(
+    await _loadReplies(question.id);
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureReplyComposerVisible();
+    });
+  }
+
+  void _ensureReplyComposerVisible() {
+    final context = _replySendKey.currentContext;
+    if (context == null) return;
+    Scrollable.ensureVisible(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Question added')));
+      duration: const Duration(milliseconds: 220),
+      alignment: 1,
+    );
+  }
+
+  Future<void> _loadReplies(String questionId) async {
+    setState(() => _loadingReplies.add(questionId));
+    try {
+      final replies = await _repository.listReplies(questionId);
+      if (!mounted) return;
+      setState(() {
+        _replies[questionId] = replies;
+        _loadingReplies.remove(questionId);
+      });
+    } on QuestionsException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingReplies.remove(questionId);
+        _replyError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadingReplies.remove(questionId);
+        _replyError = 'Could not load replies. Try again.';
+      });
+    }
+  }
+
+  Future<void> _submitReply(CongressQuestion question) async {
+    if (_replySubmitting) return;
+    final error = _board.validateReply(_replyController.text);
+    if (error != null) {
+      setState(() => _replyError = error);
+      return;
+    }
+    setState(() {
+      _replySubmitting = true;
+      _replyError = null;
+    });
+    try {
+      final reply = await _repository.createReply(
+        questionId: question.id,
+        body: _replyController.text,
+      );
+      if (!mounted) return;
+      final existing = [...?_replies[question.id], reply];
+      setState(() {
+        _replies[question.id] = existing;
+        _board.replaceOne(question.copyWith(replyCount: existing.length));
+        _replyController.clear();
+        _replySubmitting = false;
+      });
+    } on QuestionsException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _replySubmitting = false;
+        _replyError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _replySubmitting = false;
+        _replyError = 'The reply was not saved. Try again.';
+      });
+    }
+  }
+
+  void _showNotice(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -252,8 +437,9 @@ class _QaScreenState extends State<QaScreen> {
                       label: 'Submit Question',
                       icon: Icons.send_rounded,
                       showArrow: false,
+                      loading: _submitting,
                       gradient: AppColors.createAccountButton,
-                      onPressed: _submit,
+                      onPressed: _submitting ? null : _submit,
                     ),
                   ),
                 ],
@@ -261,38 +447,68 @@ class _QaScreenState extends State<QaScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
+          if (_loadError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                _loadError!,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           _SortTabs(
             selected: _board.sort,
             onSelected: (value) => setState(() => _board.sort = value),
           ),
           const SizedBox(height: 16),
           if (questions.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 28),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 28),
               child: Text(
-                'No questions in this view yet.',
+                _emptyMessage,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary),
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
             )
           else
             for (final question in questions) ...[
               _QuestionCard(
                 question: question,
-                likes: _board.likesFor(question),
-                liked: _board.likedIds.contains(question.id),
-                onLike: () => setState(() => _board.toggleLike(question.id)),
-                onReply: () => showDemoLimitationSheet(
-                  context,
-                  title: 'Replies are not connected',
-                  message: 'Replies are not sent to speakers.',
-                ),
+                liking: _likingId == question.id,
+                repliesOpen: _openRepliesId == question.id,
+                replies: _replies[question.id] ?? const [],
+                repliesLoading: _loadingReplies.contains(question.id),
+                replyError: _openRepliesId == question.id ? _replyError : null,
+                replyController: _replyController,
+                replySubmitting: _replySubmitting,
+                replySendKey: _replySendKey,
+                onLike: () => _toggleLike(question),
+                onReply: () => _toggleReplies(question),
+                onSubmitReply: () => _submitReply(question),
               ),
               const SizedBox(height: 12),
             ],
         ],
       ),
     );
+  }
+
+  String get _emptyMessage {
+    switch (_board.sort) {
+      case QuestionSort.answered:
+        return 'No answered questions yet.';
+      case QuestionSort.popular:
+      case QuestionSort.recent:
+        return 'No questions in this view yet.';
+    }
   }
 }
 
@@ -374,17 +590,31 @@ class _SortTab extends StatelessWidget {
 class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.question,
-    required this.likes,
-    required this.liked,
+    required this.liking,
+    required this.repliesOpen,
+    required this.replies,
+    required this.repliesLoading,
+    required this.replyError,
+    required this.replyController,
+    required this.replySubmitting,
+    required this.replySendKey,
     required this.onLike,
     required this.onReply,
+    required this.onSubmitReply,
   });
 
   final CongressQuestion question;
-  final int likes;
-  final bool liked;
+  final bool liking;
+  final bool repliesOpen;
+  final List<QuestionReply> replies;
+  final bool repliesLoading;
+  final String? replyError;
+  final TextEditingController replyController;
+  final bool replySubmitting;
+  final Key replySendKey;
   final VoidCallback onLike;
   final VoidCallback onReply;
+  final VoidCallback onSubmitReply;
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +628,7 @@ class _QuestionCard extends StatelessWidget {
         .take(2)
         .map((part) => part[0].toUpperCase())
         .join();
-    final highlighted = question.answered || question.localSubmission;
+    final highlighted = question.answered;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
@@ -417,7 +647,13 @@ class _QuestionCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _UpvoteControl(likes: likes, liked: liked, onLike: onLike),
+              _UpvoteControl(
+                key: ValueKey('like-${question.id}'),
+                likes: question.likeCount,
+                liked: question.likedByMe,
+                loading: liking,
+                onLike: liking ? null : onLike,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -435,12 +671,6 @@ class _QuestionCard extends StatelessWidget {
                         if (question.answered)
                           const _Pill(
                             label: 'Answered',
-                            background: AppColors.ceremonyWash,
-                            foreground: AppColors.categoryInk,
-                          ),
-                        if (question.localSubmission)
-                          const _Pill(
-                            label: 'On this device',
                             background: AppColors.ceremonyWash,
                             foreground: AppColors.categoryInk,
                           ),
@@ -472,9 +702,7 @@ class _QuestionCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  question.localSubmission
-                      ? '${question.authorName} · local'
-                      : question.authorName,
+                  question.authorName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -485,12 +713,27 @@ class _QuestionCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (question.replyCount > 0) ...[
+                Text(
+                  question.replyCount == 1
+                      ? '1 reply'
+                      : '${question.replyCount} replies',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+              ],
               TextButton.icon(
                 onPressed: onReply,
                 icon: const Icon(Icons.reply_rounded, size: 16),
                 label: const Text('Reply'),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
+                  foregroundColor: repliesOpen
+                      ? AppColors.accentBlue
+                      : AppColors.textSecondary,
                   visualDensity: VisualDensity.compact,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -499,27 +742,191 @@ class _QuestionCard extends StatelessWidget {
               ),
             ],
           ),
+          if (repliesOpen) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppColors.fieldBorder),
+            const SizedBox(height: 12),
+            if (repliesLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 10),
+                child: LinearProgressIndicator(minHeight: 2),
+              ),
+            if (replies.isEmpty && !repliesLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 10),
+                child: Text(
+                  'No replies yet.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              )
+            else
+              for (final reply in replies) ...[
+                _ReplyTile(reply: reply),
+                const SizedBox(height: 10),
+              ],
+            TextField(
+              controller: replyController,
+              minLines: 1,
+              maxLines: 3,
+              maxLength: QaBoard.replyMaxLength,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => onSubmitReply(),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                height: 1.3,
+              ),
+              cursorColor: AppColors.accentBlue,
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Write a reply...',
+                counterText: '',
+                filled: true,
+                fillColor: const Color(0xFFF4F6FB),
+                contentPadding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.fieldBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.fieldBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.accentBlue),
+                ),
+              ),
+            ),
+            if (replyError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                replyError!,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                key: replySendKey,
+                onPressed: replySubmitting ? null : onSubmitReply,
+                child: replySubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Send reply'),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
+class _ReplyTile extends StatelessWidget {
+  const _ReplyTile({required this.reply});
+
+  final QuestionReply reply;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F6FB),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    reply.authorName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (reply.createdAt != null)
+                  Text(
+                    _formatTimestamp(reply.createdAt!),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              reply.body,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _formatTimestamp(DateTime value) {
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final local = value.toLocal();
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '${local.day} ${months[local.month - 1]} · $hour:$minute';
+}
+
 class _UpvoteControl extends StatelessWidget {
   const _UpvoteControl({
+    super.key,
     required this.likes,
     required this.liked,
+    required this.loading,
     required this.onLike,
   });
 
   final int likes;
   final bool liked;
-  final VoidCallback onLike;
+  final bool loading;
+  final VoidCallback? onLike;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Local like',
+      message: liked ? 'Remove like' : 'Like',
       child: Material(
         color: const Color(0xFFF4F6FB),
         borderRadius: BorderRadius.circular(12),
@@ -531,7 +938,9 @@ class _UpvoteControl extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.fieldBorder),
+              border: Border.all(
+                color: liked ? AppColors.accentBlue : AppColors.fieldBorder,
+              ),
             ),
             child: Column(
               children: [
@@ -541,14 +950,21 @@ class _UpvoteControl extends StatelessWidget {
                       : Icons.keyboard_arrow_up_outlined,
                   color: liked ? AppColors.accentBlue : AppColors.textSecondary,
                 ),
-                Text(
-                  '$likes',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
+                if (loading)
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 1.6),
+                  )
+                else
+                  Text(
+                    '$likes',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
