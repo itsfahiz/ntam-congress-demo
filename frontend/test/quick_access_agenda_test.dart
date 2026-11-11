@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ntam_congress_demo/app/congress_app.dart';
 
+import 'support/home_shortcuts.dart';
+
 void main() {
   Future<void> pumpPhoneApp(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2340);
@@ -69,8 +71,7 @@ void main() {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
-    await tester.tap(find.text('Agenda'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Agenda');
 
     expect(find.text('Opening Ceremony'), findsOneWidget);
     expect(find.text('Nutrition Policy Roundtable'), findsNothing);
@@ -93,8 +94,7 @@ void main() {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
-    await tester.tap(find.text('Agenda'));
-    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Agenda');
 
     await tester.tap(find.text('Nutrition'));
     await tester.pumpAndSettle();

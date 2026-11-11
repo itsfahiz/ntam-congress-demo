@@ -4,7 +4,7 @@ import 'package:ntam_congress_demo/app/app_routes.dart';
 import 'package:ntam_congress_demo/features/auth/auth_validators.dart';
 import 'package:ntam_congress_demo/features/auth/data/mock_auth_repository.dart';
 import 'package:ntam_congress_demo/features/congress/data/congress_catalog.dart';
-import 'package:ntam_congress_demo/features/name_tag/demo_badge_qr.dart';
+import 'package:ntam_congress_demo/features/name_tag/data/mock_badge_qr_repository.dart';
 
 void main() {
   test('listed speakers own the sessions shown on their cards', () {
@@ -35,11 +35,16 @@ void main() {
     );
   });
 
-  test('demo badge QR encodes only the badge id', () {
+  test('mock verification URL encodes only the badge id', () {
     final attendee = MockAuthRepository.demoAttendee;
-    expect(DemoBadgeQr.payloadFor(attendee), 'NMC-DEMO-BADGE:NMC-2026-001');
-    expect(DemoBadgeQr.payloadFor(attendee).contains(attendee.email), isFalse);
-    expect(DemoBadgeQr.payloadFor(attendee).contains(attendee.phone), isFalse);
+    final url = MockBadgeQrRepository.urlFor(attendee.id);
+    expect(
+      url,
+      startsWith('https://ntam-congress-api.onrender.com/badge/verify?'),
+    );
+    expect(url, contains('b=NMC-2026-001'));
+    expect(url.contains(attendee.email), isFalse);
+    expect(url.contains(attendee.phone), isFalse);
   });
 
   test('scientific programme summary uses catalog sessions', () {
