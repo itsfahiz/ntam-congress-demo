@@ -6,6 +6,9 @@ import { setUserResolverOverride } from '../src/middleware/require-user.js';
 import {
   SEEDED_OPTION_AI,
   SEEDED_OPTION_DIGITAL,
+  SEEDED_OPTION_PEDIATRIC,
+  SEEDED_POLL_2_ID,
+  SEEDED_POLL_3_ID,
   SEEDED_POLL_ID,
   createMemoryPollStore,
   setPollStoreOverride,
@@ -62,6 +65,13 @@ async function json(
       myOptionId: string | null;
       options: { id: string; label: string; voteCount: number; percent: number }[];
     };
+    polls?: {
+      id: string;
+      question: string;
+      totalVotes: number;
+      myOptionId: string | null;
+      options: { id: string; label: string; voteCount: number; percent: number }[];
+    }[];
   };
   return { response, payload };
 }
@@ -141,4 +151,56 @@ test('GET /api/polls/active still shows the recorded vote when reopened', async 
     payload.poll?.options.find((option) => option.id === SEEDED_OPTION_AI)?.voteCount,
     1,
   );
+});
+
+test('GET /api/polls without a token returns 401', async () => {
+  const { response, payload } = await json('/api/polls');
+  assert.equal(response.status, 401);
+  assert.equal(payload.error, 'Sign in required.');
+});
+
+test('GET /api/polls returns three active polls in stable order', async () => {
+  const { response, payload } = await json('/api/polls', { token: 'user-a' });
+  assert.equal(response.status, 200);
+  assert.equal(payload.polls?.length, 3);
+  assert.deepEqual(payload.polls?.map((poll) => poll.id), [
+    SEEDED_POLL_ID,
+    SEEDED_POLL_2_ID,
+    SEEDED_POLL_3_ID,
+  ]);
+  assert.equal(
+    payload.polls?.[1]?.question,
+    'Which topic would you most like to explore at a future medical congress?',
+  );
+  assert.equal(
+    payload.polls?.[2]?.question,
+    'Which session format helps you learn most effectively?',
+  );
+});
+
+test('a vote on one poll does not lock the other polls', async () => {
+  const listed = await json('/api/polls', { token: 'user-a' });
+  assert.equal(listed.payload.polls?.[0]?.myOptionId, SEEDED_OPTION_AI);
+  assert.equal(listed.payload.polls?.[1]?.myOptionId, null);
+
+  const second = await json(`/api/polls/${SEEDED_POLL_2_ID}/vote`, {
+    token: 'user-a',
+    method: 'POST',
+    body: { optionId: SEEDED_OPTION_PEDIATRIC },
+  });
+  assert.equal(second.response.status, 200);
+  assert.equal(second.payload.poll?.id, SEEDED_POLL_2_ID);
+  assert.equal(second.payload.poll?.myOptionId, SEEDED_OPTION_PEDIATRIC);
+
+  const duplicate = await json(`/api/polls/${SEEDED_POLL_2_ID}/vote`, {
+    token: 'user-a',
+    method: 'POST',
+    body: { optionId: SEEDED_OPTION_PEDIATRIC },
+  });
+  assert.equal(duplicate.response.status, 409);
+
+  const again = await json('/api/polls', { token: 'user-a' });
+  assert.equal(again.payload.polls?.[0]?.myOptionId, SEEDED_OPTION_AI);
+  assert.equal(again.payload.polls?.[1]?.myOptionId, SEEDED_OPTION_PEDIATRIC);
+  assert.equal(again.payload.polls?.[2]?.myOptionId, null);
 });

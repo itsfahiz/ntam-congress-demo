@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireUser } from '../middleware/require-user.js';
-import { getActivePoll, voteOnPoll } from '../services/poll-service.js';
+import {
+  getActivePoll,
+  listActivePolls,
+  voteOnPoll,
+} from '../services/poll-service.js';
 
 export const pollsRouter = Router();
 
@@ -21,6 +25,15 @@ pollsRouter.get('/polls/active', async (req, res, next) => {
       return;
     }
     res.json({ poll });
+  } catch (error) {
+    next(error);
+  }
+});
+
+pollsRouter.get('/polls', async (req, res, next) => {
+  try {
+    const polls = await listActivePolls(req.authUser!.id);
+    res.json({ polls });
   } catch (error) {
     next(error);
   }
