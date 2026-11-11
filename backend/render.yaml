@@ -25,3 +25,7 @@ services:
         sync: false
       - key: SUPABASE_ANON_KEY
         sync: false
+      - key: BADGE_SIGNING_SECRET
+        sync: false
+      - key: PUBLIC_BASE_URL
+        value: https://ntam-congress-api.onrender.com

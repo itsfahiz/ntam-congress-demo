@@ -8,7 +8,8 @@ Source lives in TypeScript (`src/`, `data/`, `tests/`). `npm start` runs the com
 
 ```bash
 cp .env.example .env
-# Set GEMINI_API_KEY, DATABASE_URL, SUPABASE_URL and SUPABASE_ANON_KEY.
+# Set GEMINI_API_KEY, DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY,
+# BADGE_SIGNING_SECRET, and PUBLIC_BASE_URL.
 npm install
 npm run typecheck
 npm test
@@ -33,6 +34,8 @@ Default URL: `http://localhost:3000`
 | `GET` | `/api/speakers` | Optional `listed=true\|false` |
 | `POST` | `/api/assistant/ask` | Body `{ "question": "..." }` (2–500 chars) |
 | `GET`/`POST` | `/api/me` | Bearer token. Attendee profile |
+| `GET` | `/api/me/badge` | Bearer token. Signed QR verification URL |
+| `GET` | `/badge/verify` | Public HTML. Query `b` (badge id) and `s` (HMAC hex) |
 | `GET`/`POST` | `/api/questions` | Bearer token. Persistent Q&A |
 
 Assistant JSON: `{ "answer": string, "grounded": boolean, "sources": [{ "type": "session\|speaker\|day", "id": string }] }`. Source IDs are catalog IDs only.
@@ -67,4 +70,26 @@ Set the service **root directory** to `backend`.
 | Start | `npm start` (`node dist/src/index.js`) |
 | Health check | `GET /health` |
 
-`--include=dev` is required so TypeScript is available during the compile step even when `NODE_ENV=production`. Bind `PORT` from Render. Set `GEMINI_API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, and `SUPABASE_ANON_KEY` in the dashboard.
+`--include=dev` is required so TypeScript is available during the compile step even when `NODE_ENV=production`. Bind `PORT` from Render. Set `GEMINI_API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `BADGE_SIGNING_SECRET` in the dashboard. Do **not** put `BADGE_SIGNING_SECRET` in Git.
+
+### Attendee badge QR
+
+`GET /api/me/badge` requires a Supabase access token. It signs the attendee’s existing `badge_id` with HMAC-SHA256 (`nmc-badge:v1:<badgeId>`) and returns:
+
+```json
+{
+  "badgeId": "NMC-1BAC3BF0",
+  "verifyUrl": "https://ntam-congress-api.onrender.com/badge/verify?b=NMC-1BAC3BF0&s=<64-hex-hmac>"
+}
+```
+
+`GET /badge/verify?b=<badgeId>&s=<signature>` is public and read-only. It checks the HMAC, looks up the badge in PostgreSQL, and shows only valid/invalid, name, and badge ID. Invalid, malformed, or tampered tokens show an invalid page. This route does not create or update badges.
+
+Set these Render environment variables, then redeploy:
+
+| Key | Value |
+| --- | --- |
+| `BADGE_SIGNING_SECRET` | 32+ random bytes as hex. Generate locally with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Mark as secret. |
+| `PUBLIC_BASE_URL` | `https://ntam-congress-api.onrender.com` |
+
+Keep the same `BADGE_SIGNING_SECRET` across deploys so already-issued QR codes keep verifying.

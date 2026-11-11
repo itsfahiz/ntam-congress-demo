@@ -25,6 +25,24 @@ function mapProfile(row: ProfileRow): AttendeeProfile {
   };
 }
 
+export async function getPublicBadge(badgeId: string) {
+  const { rows } = await getPool().query<{
+    full_name: string;
+    badge_id: string;
+  }>(
+    `SELECT full_name, badge_id
+     FROM public.attendee_profiles
+     WHERE badge_id = $1
+     LIMIT 1`,
+    [badgeId],
+  );
+  if (!rows[0]) return null;
+  return {
+    fullName: rows[0].full_name,
+    badgeId: rows[0].badge_id,
+  };
+}
+
 export async function getProfile(userId: string) {
   const { rows } = await getPool().query<ProfileRow>(
     `SELECT user_id, full_name, organization, badge_id
