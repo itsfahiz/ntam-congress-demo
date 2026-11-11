@@ -115,6 +115,18 @@ test('GET /api/speakers?listed=true hides the committee host', async () => {
   );
 });
 
+test('GET /auth/confirmed is a public email-verified page', async () => {
+  const response = await fetch(
+    `${baseUrl}/auth/confirmed?token=should-not-appear`,
+  );
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') ?? '', /text\/html/);
+  assert.match(html, /Email verified successfully/);
+  assert.match(html, /Return to the Congress app and sign in\./);
+  assert.equal(html.includes('should-not-appear'), false);
+});
+
 test('unknown routes return 404', async () => {
   const { response, body } = await getJson('/api/missing');
   assert.equal(response.status, 404);

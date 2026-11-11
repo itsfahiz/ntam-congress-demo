@@ -1,6 +1,7 @@
 import express from 'express';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { assistantRouter } from './routes/assistant.js';
+import { authConfirmedRouter } from './routes/auth-confirmed.js';
 import { catalogRouter } from './routes/catalog.js';
 import { healthRouter } from './routes/health.js';
 import { meRouter } from './routes/me.js';
@@ -29,6 +30,7 @@ export function createApp() {
   });
 
   app.use(healthRouter);
+  app.use(authConfirmedRouter);
   app.use('/api', catalogRouter);
   app.use('/api', assistantRouter);
   app.use('/api', meRouter);

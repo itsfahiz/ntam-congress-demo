@@ -27,6 +27,7 @@ Default URL: `http://localhost:3000`
 | Method | Path | Notes |
 | --- | --- | --- |
 | `GET` | `/health` | Liveness |
+| `GET` | `/auth/confirmed` | Public email-verified landing page |
 | `GET` | `/api/event` | Featured event, days, venue |
 | `GET` | `/api/sessions` | Optional `day`, `track` |
 | `GET` | `/api/speakers` | Optional `listed=true\|false` |
@@ -42,10 +43,18 @@ Default model is `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`). Thinkin
 
 1. Create a project. Copy the URL, anon key, and database connection string into `backend/.env`.
 2. Do **not** put the service-role key in this repo or the Flutter app.
-3. Authentication → Providers: Email enabled. Decide whether to require email confirmation.
-4. Run `backend/db/migrations/001_attendee_profiles_and_questions.sql` in the SQL editor (or `psql "$DATABASE_URL" -f db/migrations/001_attendee_profiles_and_questions.sql`).
+3. Authentication → Providers: Email enabled. Keep email confirmation on for reviewers.
+4. Authentication → URL Configuration:
 
-The API verifies access tokens with `GET /auth/v1/user` and uses `req.authUser.id` for inserts. Clients cannot supply a user id.
+   | Setting | Value |
+   | --- | --- |
+   | Site URL | `https://ntam-congress-api.onrender.com/auth/confirmed` |
+   | Redirect URLs | `https://ntam-congress-api.onrender.com/auth/confirmed` |
+
+   Do **not** use `http://localhost:3000`. Confirmation emails follow Site URL because the Flutter app does not set `emailRedirectTo`.
+5. Run `backend/db/migrations/001_attendee_profiles_and_questions.sql` in the SQL editor (or `psql "$DATABASE_URL" -f db/migrations/001_attendee_profiles_and_questions.sql`).
+
+The API verifies access tokens with `GET /auth/v1/user` and uses `req.authUser.id` for inserts. Clients cannot supply a user id. `GET /auth/confirmed` is a public HTML page only; it does not read tokens or user data.
 
 ## Render
 
