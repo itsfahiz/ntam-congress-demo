@@ -30,21 +30,32 @@ class SpeakerCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(22),
         child: Ink(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+          padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
           decoration: BoxDecoration(
             color: AppColors.fieldFill,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: speaker.featured ? AppColors.gold : AppColors.fieldBorder,
-              width: speaker.featured ? 1.4 : 1,
+              color: speaker.featured
+                  ? AppColors.gold.withValues(alpha: 0.55)
+                  : AppColors.fieldBorder,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: 0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               InitialsAvatar(
                 initials: speaker.initials,
                 featured: speaker.featured,
+                size: 56,
+                fillColor: AppColors.fieldIconWash,
+                initialsColor: AppColors.iconBlue,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -57,7 +68,7 @@ class SpeakerCard extends StatelessWidget {
                         color: speaker.featured
                             ? AppColors.gold
                             : AppColors.textSecondary,
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
                       ),
@@ -67,7 +78,7 @@ class SpeakerCard extends StatelessWidget {
                       speaker.fullName,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -78,7 +89,7 @@ class SpeakerCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.textSecondary,
-                        fontSize: 13,
+                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -86,7 +97,7 @@ class SpeakerCard extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.location_on_outlined,
-                          size: 14,
+                          size: 15,
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 2),
@@ -97,18 +108,18 @@ class SpeakerCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppColors.textSecondary,
-                              fontSize: 12,
+                              fontSize: 13,
                             ),
                           ),
                         ),
                       ],
                     ),
                     if (session != null) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
-                          vertical: 5,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.talkWash,
@@ -122,7 +133,7 @@ class SpeakerCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: AppColors.navyChip,
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -136,6 +147,7 @@ class SpeakerCard extends StatelessWidget {
                   IconButton(
                     tooltip: favorite ? 'Remove favorite' : 'Favorite speaker',
                     onPressed: onFavorite,
+                    visualDensity: VisualDensity.compact,
                     icon: Icon(
                       favorite ? Icons.star_rounded : Icons.star_border_rounded,
                       color: favorite

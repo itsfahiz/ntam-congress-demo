@@ -18,12 +18,20 @@ class CongressFilterChips<T> extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     this.accent = ChipAccent.navy,
+    this.selectedFill,
+    this.unselectedForeground,
+    this.unselectedWeight,
+    this.unselectedBorder,
   });
 
   final List<FilterChipOption<T>> options;
   final T? selected;
   final ValueChanged<T?> onSelected;
   final ChipAccent accent;
+  final Color? selectedFill;
+  final Color? unselectedForeground;
+  final FontWeight? unselectedWeight;
+  final Color? unselectedBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +45,10 @@ class CongressFilterChips<T> extends StatelessWidget {
               label: options[i].label,
               selected: selected == options[i].value,
               accent: accent,
+              selectedFill: selectedFill,
+              unselectedForeground: unselectedForeground,
+              unselectedWeight: unselectedWeight,
+              unselectedBorder: unselectedBorder,
               onTap: () => onSelected(options[i].value),
             ),
           ],
@@ -51,22 +63,31 @@ class _ChipButton extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.accent,
+    this.selectedFill,
+    this.unselectedForeground,
+    this.unselectedWeight,
+    this.unselectedBorder,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
   final ChipAccent accent;
+  final Color? selectedFill;
+  final Color? unselectedForeground;
+  final FontWeight? unselectedWeight;
+  final Color? unselectedBorder;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = accent == ChipAccent.gold
-        ? AppColors.gold
-        : AppColors.navyChip;
-    final selectedTextColor = accent == ChipAccent.gold
+    final selectedColor =
+        selectedFill ??
+        (accent == ChipAccent.gold ? AppColors.gold : AppColors.navyChip);
+    final selectedTextColor = accent == ChipAccent.gold && selectedFill == null
         ? AppColors.navyDeep
         : Colors.white;
+    final idleColor = unselectedForeground ?? AppColors.textPrimary;
 
     return Material(
       color: selected ? selectedColor : Colors.white,
@@ -79,14 +100,18 @@ class _ChipButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSizes.radiusPill),
             border: Border.all(
-              color: selected ? selectedColor : AppColors.fieldBorder,
+              color: selected
+                  ? selectedColor
+                  : (unselectedBorder ?? AppColors.fieldBorder),
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? selectedTextColor : AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
+              color: selected ? selectedTextColor : idleColor,
+              fontWeight: selected
+                  ? FontWeight.w700
+                  : (unselectedWeight ?? FontWeight.w700),
               fontSize: 13,
             ),
           ),

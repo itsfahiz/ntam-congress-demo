@@ -49,35 +49,47 @@ class _DayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.gold : Colors.white.withValues(alpha: 0.08),
+      color: selected
+          ? const Color(0xFFF6D06A)
+          : Colors.white.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Column(
-            children: [
-              Text(
-                info.shortLabel,
-                style: TextStyle(
-                  color: selected ? AppColors.navyDeep : Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : Colors.white.withValues(alpha: 0.22),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Column(
+              children: [
+                Text(
+                  info.shortLabel,
+                  style: TextStyle(
+                    color: selected ? AppColors.navyDeep : Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                info.dateShort,
-                style: TextStyle(
-                  color: selected
-                      ? AppColors.navyDeep.withValues(alpha: 0.72)
-                      : Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 2),
+                Text(
+                  info.dateShort,
+                  style: TextStyle(
+                    color: selected
+                        ? AppColors.navyDeep.withValues(alpha: 0.72)
+                        : Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

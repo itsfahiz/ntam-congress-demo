@@ -10,6 +10,7 @@ class GradientButton extends StatelessWidget {
     this.icon,
     this.loading = false,
     this.showArrow = true,
+    this.gradient = AppColors.primaryButton,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class GradientButton extends StatelessWidget {
   final IconData? icon;
   final bool loading;
   final bool showArrow;
+  final LinearGradient gradient;
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +27,13 @@ class GradientButton extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: enabled
-            ? AppColors.primaryButton
+            ? gradient
             : LinearGradient(
+                begin: gradient.begin,
+                end: gradient.end,
                 colors: [
-                  AppColors.gradientStart.withValues(alpha: 0.45),
-                  AppColors.gradientEnd.withValues(alpha: 0.45),
+                  for (final color in gradient.colors)
+                    color.withValues(alpha: 0.45),
                 ],
               ),
         borderRadius: BorderRadius.circular(AppSizes.radiusPill),

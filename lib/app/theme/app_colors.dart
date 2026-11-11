@@ -16,9 +16,14 @@ abstract final class AppColors {
   static const card = Color(0xFFF6F7FC);
   static const fieldFill = Color(0xFFFFFFFF);
   static const fieldBorder = Color(0xFFE6EAF3);
+  static const fieldIconWash = Color(0xFFEDF2FB);
+  static const checkboxBorder = Color(0xFFB8BFC9);
   static const searchFill = Color(0xFFF3F5FB);
   static const textPrimary = Color(0xFF14213D);
+  static const loginTitle = Color(0xFF1A2744);
+  static const loginSubtitle = Color(0xFF5C6578);
   static const textSecondary = Color(0xFF7B8499);
+  static const mutedLabel = Color(0xFF6A7386);
   static const iconBlue = Color(0xFF2F6CFF);
 
   static const error = Color(0xFFD64545);
@@ -38,6 +43,18 @@ abstract final class AppColors {
 
   static const LinearGradient primaryButton = LinearGradient(
     colors: [gradientStart, gradientEnd],
+  );
+
+  static const LinearGradient signInButton = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFF1146EB), Color(0xFF5CCFFF)],
+  );
+
+  static const LinearGradient createAccountButton = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFF5CCFFF), Color(0xFF1146EB)],
   );
 
   static const LinearGradient goldBadge = LinearGradient(

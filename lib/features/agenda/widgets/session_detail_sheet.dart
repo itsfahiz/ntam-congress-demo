@@ -62,14 +62,6 @@ Future<void> showSessionDetailSheet(
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Local demo details. Session times are not live.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
               ],
             ),
           ),

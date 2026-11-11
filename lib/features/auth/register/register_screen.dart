@@ -79,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       title: 'Simulated social sign-up',
       message:
-          'Google and Apple account creation is not connected. This will not create a real Nestlé, Google, or Apple account. You can sign in as the seeded local attendee instead, or fill the form to store a profile in memory for this session.',
+          'Google and Apple are not connected. Continue as the demo attendee, or use the form. No real account is created.',
       dismissLabel: 'Use the form instead',
       onError: (message) {
         if (!mounted) return;
@@ -96,9 +96,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           title: const Text('Congress terms'),
           content: const SingleChildScrollView(
             child: Text(
-              'Sample copy for this assessment only.\n\n'
-              'By creating a local demo profile you agree that this app stores your name, email, and organization in memory on this device. Nothing is sent to Nestlé or a backend. Do not enter real production credentials.\n\n'
-              'Privacy policy and attendee guidelines would appear here in a production congress app.',
+              'Sample congress terms for this demo.\n\n'
+              'Please review attendee guidelines before creating a profile. A full privacy policy would appear here in a production congress app.',
             ),
           ),
           actions: [
@@ -125,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: TextStyle(
               color: Colors.white,
               fontSize: 34,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               height: 1.05,
             ),
           ),
@@ -135,7 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: TextStyle(
               color: AppColors.gold,
               fontSize: 36,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               height: 1.05,
               letterSpacing: 0.4,
             ),
@@ -146,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: TextStyle(
               color: AppColors.gold,
               fontSize: 36,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               height: 1.05,
               letterSpacing: 0.4,
             ),
@@ -241,8 +240,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Checkbox(
                           value: _acceptedTerms,
                           activeColor: AppColors.accentBlue,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
                           side: const BorderSide(
-                            color: AppColors.textSecondary,
+                            color: AppColors.checkboxBorder,
+                            width: 1.4,
                           ),
                           onChanged: auth.isLoading
                               ? null
@@ -299,20 +305,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     icon: Icons.person_add_alt_1_rounded,
                     showArrow: false,
                     loading: auth.isLoading,
+                    gradient: AppColors.createAccountButton,
                     onPressed: auth.isLoading ? null : _register,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Creates a local demo profile on this device only. No server account is created.',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11.5,
-                      height: 1.35,
-                    ),
                   ),
                   const SizedBox(height: 16),
                   SocialAuthRow(
                     dividerLabel: 'OR SIGN UP WITH',
+                    simpleGoogleMark: true,
                     onGoogle: auth.isLoading ? null : _showSocialSignUpSheet,
                     onApple: auth.isLoading ? null : _showSocialSignUpSheet,
                   ),

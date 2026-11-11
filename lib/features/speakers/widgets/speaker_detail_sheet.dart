@@ -34,6 +34,8 @@ Future<void> showSpeakerDetailSheet(
                         initials: speaker.initials,
                         featured: speaker.featured,
                         size: 72,
+                        fillColor: AppColors.fieldIconWash,
+                        initialsColor: AppColors.iconBlue,
                       ),
                       const SizedBox(width: 14),
                       Expanded(

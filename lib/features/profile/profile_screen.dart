@@ -20,103 +20,37 @@ class ProfileScreen extends StatelessWidget {
 
     return CongressFeatureScaffold(
       title: 'My Profile',
-      lightBody: false,
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
       safeAreaBottom: false,
       onBack: () => context.go(AppRoutes.home),
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.go(AppRoutes.home),
+      ),
       trailing: CongressHeaderButton(
         icon: Icons.settings_outlined,
-        tooltip: 'Demo session',
+        tooltip: 'Settings',
+        outlined: true,
         onPressed: () => _showSessionSheet(context),
       ),
+      hero: attendee == null ? null : _ProfileIdentity(attendee: attendee),
       body: attendee == null
           ? const Center(
               child: Text(
                 'No attendee session.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               children: [
-                Center(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      InitialsAvatar(
-                        initials: attendee.initials,
-                        size: 108,
-                        featured: true,
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 4,
-                        child: Material(
-                          color: AppColors.gold,
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: () => showDemoLimitationSheet(
-                              context,
-                              title: 'Profile editing is not connected',
-                              message:
-                                  'This assessment app does not upload photos or sync profile changes.',
-                            ),
-                            child: const SizedBox(
-                              width: 32,
-                              height: 32,
-                              child: Icon(
-                                Icons.edit_rounded,
-                                size: 16,
-                                color: AppColors.navyDeep,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  attendee.fullName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  attendee.role,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-                      border: Border.all(color: AppColors.gold),
-                    ),
-                    child: Text(
-                      'ID: ${attendee.id}',
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
                 _ContactCard(attendee: attendee),
                 const SizedBox(height: 16),
                 Row(
@@ -139,9 +73,9 @@ class ProfileScreen extends StatelessWidget {
                         label: 'Saved',
                         onTap: () => showDemoLimitationSheet(
                           context,
-                          title: 'Saved items stay on each screen',
+                          title: 'Saved items',
                           message:
-                              'Agenda bookmarks and speaker favorites are in-memory on those screens. This profile does not keep a saved count.',
+                              'Bookmarks are kept on each screen, not on this profile.',
                         ),
                       ),
                     ),
@@ -153,25 +87,16 @@ class ProfileScreen extends StatelessWidget {
                         label: 'Certificates',
                         onTap: () => showDemoLimitationSheet(
                           context,
-                          title: 'No certificates in this demo',
-                          message:
-                              'This assessment app does not issue or store certificates.',
+                          title: 'Certificates',
+                          message: 'This demo does not issue certificates.',
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-                const Text(
-                  'This profile is a local demo session. It does not sync to a Nestlé account and clears when you sign out or restart the app.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                _OrganizationDetail(organization: attendee.organization),
+                const SizedBox(height: 20),
                 SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
@@ -179,9 +104,9 @@ class ProfileScreen extends StatelessWidget {
                     icon: const Icon(Icons.logout_rounded),
                     label: const Text('Sign Out'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.navy,
                       side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.45),
+                        color: AppColors.navy.withValues(alpha: 0.28),
                       ),
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.w800,
@@ -210,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Demo session',
+                    'Settings',
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 18,
@@ -219,7 +144,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Settings, password changes and account security are not connected. Sign out only clears the in-memory attendee session.',
+                    'Settings are not connected. Sign out ends this session.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       height: 1.4,
@@ -247,6 +172,103 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+class _ProfileIdentity extends StatelessWidget {
+  const _ProfileIdentity({required this.attendee});
+
+  final Attendee attendee;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              InitialsAvatar(
+                initials: attendee.initials,
+                size: 124,
+                featured: true,
+                fillColor: AppColors.talkWash,
+                initialsColor: AppColors.iconBlue,
+              ),
+              Positioned(
+                right: 0,
+                bottom: 4,
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => showDemoLimitationSheet(
+                      context,
+                      title: 'Profile editing is not connected',
+                      message: 'Photo updates are not available.',
+                    ),
+                    child: Ink(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.edit_rounded,
+                        size: 16,
+                        color: AppColors.navyDeep,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          attendee.fullName,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          attendee.role,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A4C9C).withValues(alpha: 0.42),
+              borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+              border: Border.all(color: AppColors.gold, width: 1.4),
+            ),
+            child: Text(
+              'ID: ${attendee.id}',
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ContactCard extends StatelessWidget {
   const _ContactCard({required this.attendee});
 
@@ -255,10 +277,17 @@ class _ContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: AppColors.fieldFill,
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navy.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -266,12 +295,6 @@ class _ContactCard extends StatelessWidget {
             icon: Icons.mail_outline_rounded,
             label: 'Email',
             value: attendee.email,
-          ),
-          const Divider(height: 1, color: AppColors.fieldBorder),
-          _ContactRow(
-            icon: Icons.business_outlined,
-            label: 'Organization',
-            value: attendee.organization,
           ),
           const Divider(height: 1, color: AppColors.fieldBorder),
           _ContactRow(
@@ -308,7 +331,16 @@ class _ContactRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.iconBlue),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.talkWash,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.iconBlue, size: 22),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -338,6 +370,37 @@ class _ContactRow extends StatelessWidget {
   }
 }
 
+class _OrganizationDetail extends StatelessWidget {
+  const _OrganizationDetail({required this.organization});
+
+  final String organization;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Organization',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            organization,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatTile extends StatelessWidget {
   const _StatTile({
     required this.icon,
@@ -359,18 +422,22 @@ class _StatTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE8ECF4)),
+          ),
           child: Column(
             children: [
-              Icon(icon, color: AppColors.iconBlue),
+              Icon(icon, color: AppColors.iconBlue, size: 26),
               const SizedBox(height: 8),
               Text(
                 value,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               Text(

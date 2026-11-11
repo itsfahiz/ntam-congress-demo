@@ -47,17 +47,35 @@ class LoginFormCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Expanded(
-                  child: Text(
-                    'Welcome Back',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          color: AppColors.loginTitle,
+                          fontSize: 23,
+                          fontWeight: FontWeight.w800,
+                          height: 1.12,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Sign in to continue your congress experience',
+                        style: TextStyle(
+                          color: AppColors.loginSubtitle,
+                          fontSize: 13.5,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 10),
                 Container(
                   width: 46,
                   height: 46,
@@ -66,9 +84,9 @@ class LoginFormCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.accentBlue.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        color: AppColors.accentBlue.withValues(alpha: 0.42),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
@@ -79,16 +97,7 @@ class LoginFormCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Sign in to continue your congress experience',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13.5,
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             CongressTextField(
               controller: emailController,
               enabled: !loading,
@@ -136,6 +145,7 @@ class LoginFormCard extends StatelessWidget {
             GradientButton(
               label: 'Sign In',
               loading: loading,
+              gradient: AppColors.signInButton,
               onPressed: loading ? null : onSignIn,
             ),
             const SizedBox(height: 18),
@@ -150,15 +160,15 @@ class LoginFormCard extends StatelessWidget {
                 onPressed: loading ? null : onForgotPassword,
                 icon: const Icon(
                   Icons.lock_outline_rounded,
-                  size: 16,
+                  size: 18,
                   color: AppColors.iconBlue,
                 ),
                 label: const Text(
                   'Forgot password?',
                   style: TextStyle(
                     color: AppColors.iconBlue,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
                   ),
                 ),
               ),

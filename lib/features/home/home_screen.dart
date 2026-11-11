@@ -111,16 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'Local demo notices. These are not push notifications.',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
                   for (final notice in HomeMockData.notifications)
                     ListTile(
                       leading: const Icon(
@@ -201,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                      padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
                       sliver: SliverToBoxAdapter(child: QuickAccessGrid()),
                     ),
                     SliverPadding(

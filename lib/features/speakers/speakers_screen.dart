@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_filter_chips.dart';
 import '../../core/widgets/congress_hero_banner.dart';
-import '../../core/widgets/light_search_field.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
@@ -83,51 +83,44 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
 
     return CongressFeatureScaffold(
       title: 'Speakers',
-      trailing: CongressGoldHeaderButton(
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
+      trailing: CongressHeaderButton(
         icon: _favoritesOnly ? Icons.star_rounded : Icons.star_border_rounded,
         tooltip: _favoritesOnly ? 'Show all speakers' : 'Show favorites',
+        outlined: true,
+        foreground: AppColors.gold,
         onPressed: () => setState(() => _favoritesOnly = !_favoritesOnly),
       ),
       hero: const CongressHeroBanner(
         icon: Icons.groups_outlined,
-        title: 'Global Medical Experts',
+        title: 'Global Medical\nExperts',
         subtitle: 'Meet speakers from nutrition, research and healthcare',
+        padding: EdgeInsets.fromLTRB(18, 22, 18, 22),
+        titleSize: 24,
+        titleWeight: FontWeight.w900,
+        badgeSize: 56,
+        titleSpacing: 8,
+        contentSpacing: 16,
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: LightSearchField(
-                    controller: _searchController,
-                    hintText: 'Search speakers',
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Material(
-                  color: _focus != null
-                      ? AppColors.navyChip
-                      : AppColors.searchFill,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: _pickFocus,
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Icon(
-                        Icons.tune_rounded,
-                        color: _focus != null
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: _SpeakersSearchBar(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              onFilterPressed: _pickFocus,
             ),
           ),
           Padding(
@@ -154,11 +147,11 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     itemCount: speakers.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final speaker = speakers[index];
                       return SpeakerCard(
@@ -183,3 +176,71 @@ const _focusOptions = <FilterChipOption<SpeakerFocus>>[
   FilterChipOption(value: SpeakerFocus.research, label: 'Research'),
   FilterChipOption(value: SpeakerFocus.pediatrics, label: 'Pediatrics'),
 ];
+
+class _SpeakersSearchBar extends StatelessWidget {
+  const _SpeakersSearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onFilterPressed,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onFilterPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        border: Border.all(color: const Color(0xFFD0D7E4)),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          const Icon(
+            Icons.search_rounded,
+            color: AppColors.textSecondary,
+            size: 22,
+          ),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              cursorColor: AppColors.accentBlue,
+              decoration: const InputDecoration(
+                isDense: true,
+                hintText: 'Search speakers',
+                hintStyle: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Filter speakers',
+            onPressed: onFilterPressed,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.tune_rounded, color: AppColors.iconBlue),
+          ),
+        ],
+      ),
+    );
+  }
+}

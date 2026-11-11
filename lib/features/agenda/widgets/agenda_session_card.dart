@@ -29,20 +29,19 @@ class AgendaSessionCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Ink(
-          padding: const EdgeInsets.fromLTRB(12, 14, 8, 14),
+          padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
           decoration: BoxDecoration(
             color: AppColors.fieldFill,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: session.highlighted
-                  ? AppColors.gold
+                  ? AppColors.gold.withValues(alpha: 0.55)
                   : AppColors.fieldBorder,
-              width: session.highlighted ? 1.4 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.04),
-                blurRadius: 12,
+                color: AppColors.navy.withValues(alpha: 0.06),
+                blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
             ],
@@ -58,7 +57,7 @@ class AgendaSessionCard extends StatelessWidget {
                       session.clockLabel,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: AppColors.gold,
+                        color: AppColors.iconBlue,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         height: 1.1,
@@ -68,13 +67,19 @@ class AgendaSessionCard extends StatelessWidget {
                     Text(
                       session.period,
                       style: const TextStyle(
-                        color: AppColors.gold,
+                        color: AppColors.iconBlue,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
+              ),
+              Container(
+                width: 1,
+                height: 44,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: AppColors.fieldBorder,
               ),
               Container(
                 width: 40,

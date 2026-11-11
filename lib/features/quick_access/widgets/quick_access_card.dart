@@ -25,10 +25,11 @@ class QuickAccessCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.fieldFill,
             borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE4E9F2)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.06),
-                blurRadius: 16,
+                color: AppColors.navy.withValues(alpha: 0.08),
+                blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
             ],
@@ -62,31 +63,34 @@ class QuickAccessCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.categoryWash,
-                        borderRadius: BorderRadius.circular(
-                          AppSizes.radiusPill,
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                      ),
-                      child: Text(
-                        item.categoryLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.categoryInk,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                        decoration: BoxDecoration(
+                          color: AppColors.categoryWash,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusPill,
+                          ),
+                        ),
+                        child: Text(
+                          item.categoryLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.categoryInk,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Icon(
                     Icons.arrow_forward_rounded,
                     size: 18,

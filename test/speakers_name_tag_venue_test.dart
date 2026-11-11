@@ -91,10 +91,7 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('NMC-2026-001'), findsOneWidget);
-    expect(
-      find.text('Demo badge QR. Not connected to check-in or verification.'),
-      findsOneWidget,
-    );
+    expect(find.text('Demo badge'), findsOneWidget);
 
     final qr = tester.widget<QrImageView>(find.byType(QrImageView));
     expect((qr.key as ValueKey<String>).value, 'NMC-DEMO-BADGE:NMC-2026-001');
@@ -110,11 +107,11 @@ void main() {
     await pumpPhoneApp(tester);
 
     await tester.scrollUntilVisible(
-      find.text('Create Account →'),
+      find.text('Create Account'),
       180,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.text('Create Account →'));
+    await tester.tap(find.text('Create Account'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -180,7 +177,9 @@ void main() {
       find.text('World Trade Centre, Dubai, United Arab Emirates'),
       findsOneWidget,
     );
-    expect(find.textContaining('not a verified pin'), findsOneWidget);
     expect(find.text('Free Wi-Fi'), findsOneWidget);
+    await tester.tap(find.byTooltip('Directions'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('not a verified pin'), findsOneWidget);
   });
 }

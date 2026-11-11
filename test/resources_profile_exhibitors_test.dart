@@ -45,11 +45,11 @@ void main() {
 
   Future<void> registerAmira(WidgetTester tester) async {
     await tester.scrollUntilVisible(
-      find.text('Create Account →'),
+      find.text('Create Account'),
       180,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.text('Create Account →'));
+    await tester.tap(find.text('Create Account'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -102,8 +102,7 @@ void main() {
     await tester.tap(find.text('Pediatric Nutrition Guide'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Demo summary · not a downloadable file'), findsWidgets);
-    expect(find.textContaining('not a clinical guideline'), findsOneWidget);
+    expect(find.text('On-device summary'), findsOneWidget);
     expect(find.textContaining('Dr. Sarah Johnson'), findsOneWidget);
   });
 
@@ -114,13 +113,17 @@ void main() {
     await openFromQuickAccess(tester, 'Discover partner booths');
 
     expect(find.text('Demo booths'), findsOneWidget);
-    expect(find.textContaining('not an official exhibitor list'), findsWidgets);
+    expect(find.text('Illustrative booths'), findsOneWidget);
+    expect(find.text('ILLUSTRATIVE'), findsWidgets);
     expect(find.text('Nutrition Science Pavilion'), findsOneWidget);
 
     await tester.tap(find.text('Nutrition Science Pavilion'));
     await tester.pumpAndSettle();
-    expect(find.text('ILLUSTRATIVE DEMO BOOTH'), findsOneWidget);
-    expect(find.textContaining('not a verified exhibitor'), findsOneWidget);
+    expect(find.text('ILLUSTRATIVE'), findsWidgets);
+    expect(
+      find.textContaining('tied to the pediatric nutrition sessions'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Profile shows seeded attendee details', (tester) async {
@@ -133,7 +136,6 @@ void main() {
     expect(find.text('My Profile'), findsOneWidget);
     expect(find.text('Huda Latheef'), findsOneWidget);
     expect(find.text('huda@example.com'), findsOneWidget);
-    expect(find.text('NTAM'), findsOneWidget);
     expect(find.text('ID: NMC-2026-001'), findsOneWidget);
     expect(find.text('+971 56 283 4212'), findsOneWidget);
     expect(find.text('Dubai, UAE'), findsOneWidget);
@@ -143,6 +145,7 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Sign Out'), findsOneWidget);
+    expect(find.text('NTAM'), findsOneWidget);
     expect(find.text('08'), findsOneWidget);
   });
 
@@ -155,9 +158,14 @@ void main() {
 
     expect(find.text('Amira Hassan'), findsOneWidget);
     expect(find.text('amira@example.com'), findsOneWidget);
-    expect(find.text('Dubai Hospital'), findsOneWidget);
     expect(find.text('ID: NMC-2026-002'), findsOneWidget);
     expect(find.text('Huda Latheef'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Dubai Hospital'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Dubai Hospital'), findsOneWidget);
   });
 
   testWidgets('Sign Out returns to Login and blocks protected routes', (

@@ -11,20 +11,26 @@ class CongressFeatureScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.body,
+    this.leading,
     this.trailing,
     this.hero,
     this.lightBody = true,
     this.onBack,
     this.safeAreaBottom = true,
+    this.titleAlign = TextAlign.center,
+    this.titleStyle,
   });
 
   final String title;
   final Widget body;
+  final Widget? leading;
   final Widget? trailing;
   final Widget? hero;
   final bool lightBody;
   final VoidCallback? onBack;
   final bool safeAreaBottom;
+  final TextAlign titleAlign;
+  final TextStyle? titleStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -49,20 +55,25 @@ class CongressFeatureScaffold extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                         child: Row(
                           children: [
-                            _HeaderButton(
-                              icon: Icons.chevron_left_rounded,
-                              tooltip: 'Back',
-                              onPressed: onBack ?? () => context.pop(),
-                            ),
+                            leading ??
+                                _HeaderButton(
+                                  icon: Icons.chevron_left_rounded,
+                                  tooltip: 'Back',
+                                  onPressed: onBack ?? () => context.pop(),
+                                ),
+                            if (titleAlign == TextAlign.start)
+                              const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 title,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                                textAlign: titleAlign,
+                                style:
+                                    titleStyle ??
+                                    const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                               ),
                             ),
                             trailing ?? const SizedBox(width: 48, height: 48),
@@ -145,12 +156,14 @@ class CongressHeaderButton extends StatelessWidget {
     required this.onPressed,
     this.tooltip,
     this.foreground = Colors.white,
+    this.outlined = false,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
   final String? tooltip;
   final Color foreground;
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +172,7 @@ class CongressHeaderButton extends StatelessWidget {
       onPressed: onPressed,
       tooltip: tooltip,
       foreground: foreground,
+      outlined: outlined,
     );
   }
 }
@@ -169,27 +183,43 @@ class _HeaderButton extends StatelessWidget {
     required this.onPressed,
     this.tooltip,
     this.foreground = Colors.white,
+    this.outlined = false,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
   final String? tooltip;
   final Color foreground;
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(12);
+    final shape = outlined
+        ? RoundedRectangleBorder(borderRadius: radius)
+        : const CircleBorder();
+
     return Tooltip(
       message: tooltip ?? 'Action',
       child: Material(
-        color: Colors.white.withValues(alpha: 0.1),
-        shape: const CircleBorder(),
+        color: Colors.white.withValues(alpha: outlined ? 0.08 : 0.1),
+        shape: shape,
         child: InkWell(
-          customBorder: const CircleBorder(),
+          customBorder: shape,
           onTap: onPressed,
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: Icon(icon, color: foreground),
+          child: Container(
+            width: outlined ? 44 : 48,
+            height: outlined ? 44 : 48,
+            alignment: Alignment.center,
+            decoration: outlined
+                ? BoxDecoration(
+                    borderRadius: radius,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                    ),
+                  )
+                : null,
+            child: Icon(icon, color: foreground, size: outlined ? 26 : 24),
           ),
         ),
       ),

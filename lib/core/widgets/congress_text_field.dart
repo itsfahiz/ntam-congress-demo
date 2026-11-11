@@ -52,7 +52,28 @@ class CongressTextField extends StatelessWidget {
       cursorColor: AppColors.accentBlue,
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: Icon(prefixIcon, color: AppColors.iconBlue),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 10, right: 6),
+          child: UnconstrainedBox(
+            child: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.fieldIconWash,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.iconBlue.withValues(alpha: 0.08),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Icon(prefixIcon, color: AppColors.iconBlue, size: 18),
+            ),
+          ),
+        ),
         suffixIcon: suffix,
       ),
     );

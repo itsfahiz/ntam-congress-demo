@@ -8,11 +8,15 @@ class InitialsAvatar extends StatelessWidget {
     required this.initials,
     this.size = 64,
     this.featured = false,
+    this.fillColor = Colors.white,
+    this.initialsColor = AppColors.textPrimary,
   });
 
   final String initials;
   final double size;
   final bool featured;
+  final Color fillColor;
+  final Color initialsColor;
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +35,12 @@ class InitialsAvatar extends StatelessWidget {
         ),
       ),
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: fillColor, shape: BoxShape.circle),
         child: Center(
           child: Text(
             initials,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: initialsColor,
               fontWeight: FontWeight.w800,
               fontSize: size * 0.28,
             ),

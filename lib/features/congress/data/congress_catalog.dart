@@ -18,14 +18,14 @@ abstract final class CongressCatalog {
       shortLabel: 'Day 1',
       dateShort: 'May 22',
       headline: 'Day 1 Schedule',
-      dateLong: 'Thursday, May 22, 2026',
+      dateLong: 'Friday, May 22, 2026',
     ),
     CongressDayInfo(
       day: CongressDay.day2,
       shortLabel: 'Day 2',
       dateShort: 'May 23',
       headline: 'Day 2 Schedule',
-      dateLong: 'Friday, May 23, 2026',
+      dateLong: 'Saturday, May 23, 2026',
     ),
   ];
 
@@ -372,24 +372,21 @@ abstract final class CongressCatalog {
       name: 'Nutrition Science Pavilion',
       hall: 'Hall B',
       focus: 'Pediatric nutrition',
-      summary:
-          'Illustrative booth tied to the pediatric nutrition sessions. This is not a verified exhibitor listing.',
+      summary: 'Illustrative booth tied to the pediatric nutrition sessions.',
     ),
     CongressExhibitor(
       id: 'research-lounge',
       name: 'Clinical Research Lounge',
       hall: 'Hall C',
       focus: 'Research highlights',
-      summary:
-          'Demo space for discussing translational research talks. Not an official partner booth.',
+      summary: 'Space for discussing translational research talks.',
     ),
     CongressExhibitor(
       id: 'programme-desk',
       name: 'Programme Host Desk',
       hall: 'Main Auditorium',
       focus: 'Congress information',
-      summary:
-          'Placeholder information desk for the assessment app. No external exhibitor links are provided.',
+      summary: 'Congress information desk for programme and venue questions.',
     ),
   ];
 
@@ -408,13 +405,11 @@ abstract final class CongressCatalog {
         subtitle: 'Clinical reference material',
         kind: ResourceKind.pdf,
         body:
-            'Demo summary for the assessment app, not a clinical guideline or downloadable PDF.\n\n'
             'Tied to Future of Pediatric Nutrition with ${speakerById(sarahId).fullName}.\n\n'
             'Talking points:\n'
             '• Personalised feeding plans for different growth patterns\n'
             '• How session takeaways map to hospital nutrition protocols\n'
-            '• Questions attendees can raise in Ask Q&A\n\n'
-            'This text stays on the device. Nothing is downloaded or opened from the network.',
+            '• Questions attendees can raise in Ask Q&A',
       ),
       CongressResource(
         id: 'keynote-slides',
@@ -422,33 +417,28 @@ abstract final class CongressCatalog {
         subtitle: featuredEvent.title,
         kind: ResourceKind.slides,
         body:
-            'Demo slide outline. A real slide deck is not bundled.\n\n'
             '${featuredEvent.title}\n'
             '${featuredEvent.dateLabel} · ${featuredEvent.location}\n\n'
             '1. Opening Ceremony — Congress Committee, Main Auditorium\n'
             '2. Welcome & Introduction — ${speakerById(hassanId).fullName}\n'
             '3. Future of Pediatric Nutrition — ${speakerById(sarahId).fullName}\n'
-            '4. Closing Keynote — programme recap\n\n'
-            'Open this outline locally. The app does not fetch slides from a server.',
+            '4. Closing Keynote — programme recap',
       ),
       CongressResource(
         id: 'session-recap',
         title: 'Day 1 Session Recap',
-        subtitle: 'Video is not bundled in this demo',
+        subtitle: 'Session highlights',
         kind: ResourceKind.video,
         body:
-            'No video file is included with this app.\n\n'
+            'No video file is included.\n\n'
             'Day 1 outline:\n'
-            '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}\n\n'
-            'Use Agenda for times and rooms. This card does not stream or download media.',
+            '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}',
       ),
     ];
   }
 
   static String scientificProgrammeSummary() {
     final buffer = StringBuffer()
-      ..writeln('Demo programme summary. Not a downloadable PDF.')
-      ..writeln()
       ..writeln(featuredEvent.title)
       ..writeln('${featuredEvent.dateLabel} · ${featuredEvent.location}')
       ..writeln();
@@ -461,9 +451,6 @@ abstract final class CongressCatalog {
       }
       buffer.writeln();
     }
-    buffer.writeln(
-      'Generated from the same local catalog as Home, Agenda and Speakers.',
-    );
     return buffer.toString().trim();
   }
 

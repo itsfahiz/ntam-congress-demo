@@ -20,20 +20,11 @@ class ExhibitorsScreen extends StatelessWidget {
       hero: const CongressHeroBanner(
         icon: Icons.work_outline_rounded,
         title: 'Demo booths',
-        subtitle: 'Illustrative spaces only — not an official exhibitor list',
+        subtitle: 'Illustrative booths',
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         children: [
-          const Text(
-            'These booths are mock congress content for the assessment app. They are not verified official participants and have no external links.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
           for (final exhibitor in exhibitors) ...[
             _ExhibitorCard(
               exhibitor: exhibitor,
@@ -64,7 +55,7 @@ class ExhibitorsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'ILLUSTRATIVE DEMO BOOTH',
+                    'ILLUSTRATIVE',
                     style: TextStyle(
                       color: AppColors.categoryInk,
                       fontSize: 11,

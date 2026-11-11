@@ -8,11 +8,13 @@ class SocialAuthRow extends StatelessWidget {
     required this.dividerLabel,
     required this.onGoogle,
     required this.onApple,
+    this.simpleGoogleMark = false,
   });
 
   final String dividerLabel;
   final VoidCallback? onGoogle;
   final VoidCallback? onApple;
+  final bool simpleGoogleMark;
 
   @override
   Widget build(BuildContext context) {
@@ -20,20 +22,28 @@ class SocialAuthRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Divider(color: Colors.grey.shade300)),
+            Expanded(
+              child: Divider(
+                color: AppColors.fieldBorder.withValues(alpha: 0.9),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(
                 dividerLabel,
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.6,
+                style: const TextStyle(
+                  color: AppColors.mutedLabel,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.7,
                 ),
               ),
             ),
-            Expanded(child: Divider(color: Colors.grey.shade300)),
+            Expanded(
+              child: Divider(
+                color: AppColors.fieldBorder.withValues(alpha: 0.9),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -42,15 +52,9 @@ class SocialAuthRow extends StatelessWidget {
             Expanded(
               child: _SocialButton(
                 onPressed: onGoogle,
-                child: const Text(
-                  'G',
-                  style: TextStyle(
-                    color: AppColors.googleBlue,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    height: 1,
-                  ),
-                ),
+                child: simpleGoogleMark
+                    ? const _SimpleGoogleMark()
+                    : const _GoogleMark(),
               ),
             ),
             const SizedBox(width: 12),
@@ -89,8 +93,8 @@ class _SocialButton extends StatelessWidget {
             border: Border.all(color: AppColors.fieldBorder),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
@@ -98,6 +102,39 @@ class _SocialButton extends StatelessWidget {
           child: child,
         ),
       ),
+    );
+  }
+}
+
+class _SimpleGoogleMark extends StatelessWidget {
+  const _SimpleGoogleMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'G',
+      semanticsLabel: 'Google',
+      style: TextStyle(
+        color: AppColors.googleBlue,
+        fontSize: 26,
+        fontWeight: FontWeight.w600,
+        height: 1,
+      ),
+    );
+  }
+}
+
+class _GoogleMark extends StatelessWidget {
+  const _GoogleMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/branding/google_g.png',
+      width: 24,
+      height: 24,
+      filterQuality: FilterQuality.high,
+      semanticLabel: 'Google',
     );
   }
 }

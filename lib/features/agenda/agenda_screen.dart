@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -63,9 +64,16 @@ class _AgendaScreenState extends State<AgendaScreen> {
 
     return CongressFeatureScaffold(
       title: 'Congress Agenda',
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
       trailing: CongressHeaderButton(
         icon: Icons.search_rounded,
         tooltip: 'Search',
+        outlined: true,
         onPressed: () => setState(() => _searchOpen = !_searchOpen),
       ),
       hero: Column(
@@ -94,13 +102,37 @@ class _AgendaScreenState extends State<AgendaScreen> {
                     ),
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: _resetFilters,
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: const Text('Reset'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.navyChip,
-                    visualDensity: VisualDensity.compact,
+                Material(
+                  color: AppColors.talkWash,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                  child: InkWell(
+                    onTap: _resetFilters,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.refresh_rounded,
+                            size: 18,
+                            color: AppColors.iconBlue,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Reset',
+                            style: TextStyle(
+                              color: AppColors.iconBlue,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -119,6 +151,9 @@ class _AgendaScreenState extends State<AgendaScreen> {
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
             child: CongressFilterChips<SessionTrack>(
               selected: _track,
+              selectedFill: AppColors.accentBlue,
+              unselectedForeground: AppColors.mutedLabel,
+              unselectedWeight: FontWeight.w600,
               onSelected: (value) => setState(() => _track = value),
               options: const [
                 FilterChipOption(value: null, label: 'All'),
@@ -168,45 +203,53 @@ class _ScheduleBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            borderRadius: BorderRadius.circular(16),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C4A94).withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: AppColors.goldBadge,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.calendar_month_rounded,
+              color: Colors.white,
+            ),
           ),
-          child: const Icon(
-            Icons.calendar_month_rounded,
-            color: AppColors.navyDeep,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                info.headline,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  info.headline,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                info.dateLong,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.72),
-                  fontSize: 13,
+                const SizedBox(height: 4),
+                Text(
+                  info.dateLong,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.72),
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -104,20 +105,40 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
     return CongressFeatureScaffold(
       title: 'Resources',
-      trailing: CongressGoldHeaderButton(
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
+      trailing: CongressHeaderButton(
         icon: Icons.folder_outlined,
         tooltip: 'About this library',
+        outlined: true,
+        foreground: AppColors.gold,
         onPressed: () => showDemoLimitationSheet(
           context,
-          title: 'Demo library only',
+          title: 'Congress library',
           message:
-              'These cards open on-device summaries. The app does not download files, open external URLs, or claim that PDFs and videos are bundled.',
+              'These cards open on-device summaries, not downloadable files.',
         ),
       ),
       hero: const CongressHeroBanner(
-        icon: Icons.cloud_download_outlined,
+        icon: Icons.cloud_download_rounded,
         title: 'Congress Library',
         subtitle: 'Access presentations, documents and media files',
+        padding: EdgeInsets.fromLTRB(18, 22, 18, 22),
+        titleSize: 22,
+        titleWeight: FontWeight.w900,
+        badgeSize: 56,
+        titleSpacing: 8,
+        contentSpacing: 16,
       ),
       body: Column(
         children: [
@@ -126,6 +147,8 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
             child: LightSearchField(
               controller: _searchController,
               hintText: 'Search resources',
+              fillColor: AppColors.fieldFill,
+              borderColor: const Color(0xFFD0D7E4),
               onChanged: (_) => setState(() {}),
             ),
           ),
@@ -133,6 +156,9 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
             child: CongressFilterChips<String>(
               selected: _savedOnly ? 'saved' : (_kind?.name ?? 'all'),
+              unselectedForeground: AppColors.mutedLabel,
+              unselectedWeight: FontWeight.w600,
+              unselectedBorder: const Color(0xFFE1E6F0),
               onSelected: (value) => setState(() {
                 switch (value) {
                   case 'saved':
@@ -213,23 +239,36 @@ class _ResourceCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onSave;
 
+  String get _referenceSizeLabel => switch (resource.id) {
+    'programme' => '4.2 MB',
+    'pediatric-guide' => '2.8 MB',
+    'keynote-slides' => '8.6 MB',
+    'session-recap' => '45 min',
+    _ => '',
+  };
+
   @override
   Widget build(BuildContext context) {
-    final palette = switch (resource.kind) {
-      ResourceKind.pdf => (
+    final palette = switch (resource.id) {
+      'pediatric-guide' => (
+        wash: AppColors.talkWash,
+        ink: AppColors.iconBlue,
+        icon: Icons.menu_book_rounded,
+      ),
+      'keynote-slides' => (
+        wash: AppColors.ceremonyWash,
+        ink: AppColors.gold,
+        icon: Icons.slideshow_rounded,
+      ),
+      'session-recap' => (
+        wash: AppColors.talkWash,
+        ink: AppColors.iconBlue,
+        icon: Icons.play_circle_rounded,
+      ),
+      _ => (
         wash: const Color(0xFFFFE8E6),
         ink: const Color(0xFFD64545),
         icon: Icons.picture_as_pdf_rounded,
-      ),
-      ResourceKind.slides => (
-        wash: AppColors.ceremonyWash,
-        ink: AppColors.categoryInk,
-        icon: Icons.slideshow_rounded,
-      ),
-      ResourceKind.video => (
-        wash: AppColors.talkWash,
-        ink: AppColors.iconBlue,
-        icon: Icons.play_circle_outline_rounded,
       ),
     };
 
@@ -240,10 +279,17 @@ class _ResourceCard extends StatelessWidget {
         onTap: onOpen,
         borderRadius: BorderRadius.circular(22),
         child: Ink(
-          padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
+          padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.fieldBorder),
+            border: Border.all(color: const Color(0xFFE8ECF4)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -270,6 +316,7 @@ class _ResourceCard extends StatelessWidget {
                         letterSpacing: 0.6,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       resource.title,
                       maxLines: 1,
@@ -280,6 +327,7 @@ class _ResourceCard extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       resource.subtitle,
                       maxLines: 1,
@@ -289,15 +337,24 @@ class _ResourceCard extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      resource.availabilityLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.list_rounded,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _referenceSizeLabel,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -305,9 +362,13 @@ class _ResourceCard extends StatelessWidget {
               Column(
                 children: [
                   IconButton(
-                    tooltip: saved
-                        ? 'Remove from saved'
-                        : 'Save on this device',
+                    tooltip: saved ? 'Remove from saved' : 'Save',
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                     onPressed: onSave,
                     icon: Icon(
                       saved
@@ -317,11 +378,17 @@ class _ResourceCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Open demo summary',
+                    tooltip: 'Open',
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                     onPressed: onOpen,
                     icon: const Icon(
                       Icons.download_rounded,
-                      color: AppColors.iconBlue,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],

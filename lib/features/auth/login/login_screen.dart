@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       title: 'Simulated social sign-in',
       message:
-          'Google and Apple are not connected in this assessment app. Continuing uses the seeded local attendee (Huda Latheef). No real account is created.',
+          'Google and Apple are not connected. Continue as the demo attendee (Huda Latheef). No real account is created.',
       dismissLabel: 'Cancel',
       onError: (message) {
         if (!mounted) return;
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Enter the email linked to your attendee profile. This demo only simulates sending a reset link — no email is sent.',
+                  'Enter the email on your attendee profile. No email will be sent.',
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -106,9 +106,9 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
       if (!mounted || sent != true) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Demo only: no reset email was sent.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No reset email was sent.')));
     } finally {
       emailController.dispose();
     }
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           const LoginHeroHeader(),
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
           LoginFormCard(
             formKey: _formKey,
             emailController: _emailController,
@@ -142,7 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 18),
           AuthSwitchPrompt(
             prompt: "Don't have an account? ",
-            actionLabel: 'Create Account →',
+            actionLabel: 'Create Account',
+            showArrow: true,
             onAction: auth.isLoading
                 ? null
                 : () => context.push(AppRoutes.register),

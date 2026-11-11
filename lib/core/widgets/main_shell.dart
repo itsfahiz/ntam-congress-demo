@@ -44,6 +44,7 @@ class MainShell extends StatelessWidget {
                           icon: Icons.person_rounded,
                           label: 'Profile',
                           selected: navigationShell.currentIndex == 1,
+                          accented: true,
                           onTap: () => navigationShell.goBranch(1),
                         ),
                       ),
@@ -65,32 +66,49 @@ class _ShellTab extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.accented = false,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool accented;
 
   @override
   Widget build(BuildContext context) {
+    const accent = AppColors.gradientEnd;
+    final radius = BorderRadius.circular(18);
+    final selectedColor = accented ? accent : Colors.white;
+    final fill = !selected
+        ? Colors.transparent
+        : accented
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.white.withValues(alpha: 0.08);
+
     return Material(
-      color: selected
-          ? Colors.white.withValues(alpha: 0.08)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      color: Colors.transparent,
+      borderRadius: radius,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Padding(
+        borderRadius: radius,
+        child: Ink(
           padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            color: fill,
+            border: Border.all(
+              color: selected && accented ? accent : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
                 color: selected
-                    ? Colors.white
+                    ? selectedColor
                     : Colors.white.withValues(alpha: 0.45),
               ),
               const SizedBox(height: 4),
@@ -100,7 +118,7 @@ class _ShellTab extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected
-                      ? Colors.white
+                      ? selectedColor
                       : Colors.white.withValues(alpha: 0.45),
                 ),
               ),

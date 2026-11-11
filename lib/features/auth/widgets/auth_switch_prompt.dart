@@ -8,11 +8,13 @@ class AuthSwitchPrompt extends StatelessWidget {
     required this.prompt,
     required this.actionLabel,
     required this.onAction,
+    this.showArrow = false,
   });
 
   final String prompt;
   final String actionLabel;
   final VoidCallback? onAction;
+  final bool showArrow;
 
   @override
   Widget build(BuildContext context) {
@@ -23,19 +25,33 @@ class AuthSwitchPrompt extends StatelessWidget {
         Text(
           prompt,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.82),
+            color: Colors.white.withValues(alpha: 0.88),
             fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
         ),
         GestureDetector(
           onTap: onAction,
-          child: Text(
-            actionLabel,
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                actionLabel,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (showArrow) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: AppColors.gold,
+                ),
+              ],
+            ],
           ),
         ),
       ],

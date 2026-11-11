@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app/theme/app_colors.dart';
@@ -19,15 +20,28 @@ class NameTagScreen extends StatelessWidget {
 
     return CongressFeatureScaffold(
       title: 'My Name Tag',
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
       lightBody: false,
-      trailing: CongressGoldHeaderButton(
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
+      trailing: CongressHeaderButton(
         icon: Icons.print_rounded,
         tooltip: 'Print',
+        outlined: true,
+        foreground: AppColors.gold,
         onPressed: () => showDemoLimitationSheet(
           context,
           title: 'Printing is not connected',
-          message:
-              'This assessment app does not send the badge to a printer or share sheet.',
+          message: 'This app does not send the badge to a printer.',
         ),
       ),
       body: attendee == null
@@ -38,7 +52,7 @@ class NameTagScreen extends StatelessWidget {
               ),
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(
@@ -47,50 +61,52 @@ class NameTagScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: const BoxDecoration(
-                          gradient: AppColors.primaryButton,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(28),
-                            bottom: Radius.circular(18),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryButton,
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              'NESTLÉ MEDICAL',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
-                                fontSize: 13,
+                          child: const Column(
+                            children: [
+                              Text(
+                                'NESTLÉ MEDICAL',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                  fontSize: 13,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'CONGRESS 2026',
-                              style: TextStyle(
-                                color: AppColors.gold,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.4,
-                                fontSize: 12,
+                              SizedBox(height: 2),
+                              Text(
+                                'CONGRESS 2026',
+                                style: TextStyle(
+                                  color: AppColors.gold,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.4,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+                        padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
                         child: Column(
                           children: [
                             InitialsAvatar(
                               initials: attendee.initials,
-                              size: 96,
+                              size: 120,
                               featured: true,
+                              fillColor: AppColors.fieldIconWash,
+                              initialsColor: AppColors.iconBlue,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 20),
                             Text(
                               attendee.fullName,
                               textAlign: TextAlign.center,
@@ -100,7 +116,7 @@ class NameTagScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             Text(
                               '${attendee.organization} · ${attendee.role}',
                               textAlign: TextAlign.center,
@@ -109,48 +125,68 @@ class NameTagScreen extends StatelessWidget {
                                 fontSize: 14,
                               ),
                             ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 16),
+                            const _AwardDivider(),
+                            const SizedBox(height: 20),
                             _BadgeRow(
                               icon: Icons.badge_outlined,
                               label: 'Badge ID',
                               value: attendee.id,
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _BadgeRow(
                               icon: Icons.location_on_outlined,
                               label: 'Location',
                               value: attendee.location,
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _BadgeRow(
                               icon: Icons.calendar_month_outlined,
                               label: 'Congress Date',
                               value: CongressCatalog.venue.dateLabel,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
                             Semantics(
                               label: 'Demo badge QR code',
-                              child: ColoredBox(
-                                color: Colors.white,
-                                child: QrImageView(
-                                  key: ValueKey(payload),
-                                  data: payload,
-                                  size: 196,
-                                  backgroundColor: Colors.white,
-                                  eyeStyle: const QrEyeStyle(
-                                    eyeShape: QrEyeShape.square,
-                                    color: AppColors.navyDeep,
-                                  ),
-                                  dataModuleStyle: const QrDataModuleStyle(
-                                    dataModuleShape: QrDataModuleShape.square,
-                                    color: AppColors.navyDeep,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEEF1F6),
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: QrImageView(
+                                        key: ValueKey(payload),
+                                        data: payload,
+                                        size: 196,
+                                        padding: EdgeInsets.zero,
+                                        backgroundColor: Colors.white,
+                                        eyeStyle: const QrEyeStyle(
+                                          eyeShape: QrEyeShape.square,
+                                          color: AppColors.navyDeep,
+                                        ),
+                                        dataModuleStyle:
+                                            const QrDataModuleStyle(
+                                              dataModuleShape:
+                                                  QrDataModuleShape.square,
+                                              color: AppColors.navyDeep,
+                                            ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             const Text(
-                              'Demo badge QR. Not connected to check-in or verification.',
+                              'Demo badge',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: AppColors.textSecondary,
@@ -170,6 +206,28 @@ class NameTagScreen extends StatelessWidget {
   }
 }
 
+class _AwardDivider extends StatelessWidget {
+  const _AwardDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.fieldBorder, thickness: 1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Icon(
+            Icons.workspace_premium_rounded,
+            color: AppColors.gold,
+            size: 18,
+          ),
+        ),
+        Expanded(child: Divider(color: AppColors.fieldBorder, thickness: 1)),
+      ],
+    );
+  }
+}
+
 class _BadgeRow extends StatelessWidget {
   const _BadgeRow({
     required this.icon,
@@ -185,14 +243,23 @@ class _BadgeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 16, 16, 16),
       decoration: BoxDecoration(
-        color: AppColors.searchFill,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF4F6FB),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.iconBlue),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.talkWash,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.iconBlue, size: 22),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -205,6 +272,7 @@ class _BadgeRow extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(

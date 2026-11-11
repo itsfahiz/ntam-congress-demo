@@ -7,38 +7,60 @@ class LoginFeaturePills extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Expanded(
-          child: _FeaturePill(
-            icon: Icons.groups_outlined,
-            label: 'Global Experts',
-            color: AppColors.gradientEnd,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: const Row(
+        children: [
+          Expanded(
+            child: _FeatureSegment(
+              icon: Icons.groups_outlined,
+              label: 'Global Experts',
+              color: AppColors.gradientEnd,
+            ),
           ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: _FeaturePill(
-            icon: Icons.calendar_today_outlined,
-            label: 'Knowledge Sessions',
-            color: AppColors.gradientEnd,
+          _SegmentDivider(),
+          Expanded(
+            child: _FeatureSegment(
+              icon: Icons.calendar_today_outlined,
+              label: 'Knowledge Sessions',
+              color: AppColors.gradientEnd,
+            ),
           ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: _FeaturePill(
-            icon: Icons.star_border_rounded,
-            label: 'Networking Opportunities',
-            color: AppColors.gold,
+          _SegmentDivider(),
+          Expanded(
+            child: _FeatureSegment(
+              icon: Icons.star_border_rounded,
+              label: 'Networking Opportunities',
+              color: AppColors.gold,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-class _FeaturePill extends StatelessWidget {
-  const _FeaturePill({
+class _SegmentDivider extends StatelessWidget {
+  const _SegmentDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 42,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      color: Colors.white.withValues(alpha: 0.16),
+    );
+  }
+}
+
+class _FeatureSegment extends StatelessWidget {
+  const _FeatureSegment({
     required this.icon,
     required this.label,
     required this.color,
@@ -50,16 +72,21 @@ class _FeaturePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color),
+          Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.45)),
+            ),
+            child: Icon(icon, size: 15, color: color),
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -67,7 +94,7 @@ class _FeaturePill extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withValues(alpha: 0.92),
                 fontSize: 10,
                 height: 1.2,
                 fontWeight: FontWeight.w600,

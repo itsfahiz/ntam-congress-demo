@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -15,52 +16,38 @@ class VenueScreen extends StatelessWidget {
 
     return CongressFeatureScaffold(
       title: 'Venue',
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
       lightBody: false,
-      trailing: CongressGoldHeaderButton(
-        icon: Icons.near_me_rounded,
-        tooltip: 'Directions',
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
+      trailing: _DirectionsButton(
         onPressed: () => showDemoLimitationSheet(
           context,
           title: 'Directions are not connected',
           message:
-              '${venue.addressDisclaimer} This app does not open a maps provider or use a Maps API key.',
+              '${venue.addressDisclaimer} This app does not open a maps provider.',
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          Text(
-            venue.name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_month_outlined,
-                color: AppColors.gold,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                venue.dateLabel,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
+          _VenueHero(name: venue.name, dateLabel: venue.dateLabel),
+          const SizedBox(height: 16),
           _WhiteCard(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: const BoxDecoration(
                     color: AppColors.talkWash,
                     shape: BoxShape.circle,
@@ -68,9 +55,10 @@ class VenueScreen extends StatelessWidget {
                   child: const Icon(
                     Icons.location_on_rounded,
                     color: AppColors.iconBlue,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,15 +80,6 @@ class VenueScreen extends StatelessWidget {
                           height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        venue.addressDisclaimer,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          height: 1.3,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -108,12 +87,10 @@ class VenueScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const _WhiteCard(
-            padding: EdgeInsets.all(12),
-            child: StaticVenueMap(),
-          ),
+          const StaticVenueMap(),
           const SizedBox(height: 14),
           _WhiteCard(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -121,8 +98,8 @@ class VenueScreen extends StatelessWidget {
                   'Venue Facilities',
                   style: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -130,13 +107,13 @@ class VenueScreen extends StatelessWidget {
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 2.4,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 2.15,
                   children: [
                     for (final facility in venue.facilities)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(
                           color: AppColors.searchFill,
                           borderRadius: BorderRadius.circular(16),
@@ -152,7 +129,7 @@ class VenueScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w800,
                                   fontSize: 13,
                                 ),
                               ),
@@ -166,6 +143,98 @@ class VenueScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VenueHero extends StatelessWidget {
+  const _VenueHero({required this.name, required this.dateLabel});
+
+  final String name;
+  final String dateLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3D74C8).withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_rounded,
+                color: AppColors.gradientEnd,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                dateLabel,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DirectionsButton extends StatelessWidget {
+  const _DirectionsButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(12);
+
+    return Tooltip(
+      message: 'Directions',
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: radius,
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+            ),
+            child: Transform.rotate(
+              angle: -0.5,
+              child: const Icon(
+                Icons.near_me_rounded,
+                color: AppColors.gold,
+                size: 26,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -37,19 +37,19 @@ void main() {
     await signInAsDemo(tester);
     await openQuickAccess(tester);
 
-    expect(find.text('Explore Congress Tools'), findsOneWidget);
+    expect(find.textContaining('Explore Congress'), findsOneWidget);
     expect(find.text('View full congress schedule'), findsOneWidget);
 
     await tester.tap(find.text('Speakers'));
     await tester.pumpAndSettle();
 
     expect(find.text('Speakers'), findsWidgets);
-    expect(find.text('Global Medical Experts'), findsOneWidget);
+    expect(find.textContaining('Global Medical'), findsOneWidget);
     expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
-    expect(find.text('Explore Congress Tools'), findsOneWidget);
+    expect(find.textContaining('Explore Congress'), findsOneWidget);
   });
 
   testWidgets('Quick Access Agenda card opens Congress Agenda', (tester) async {
@@ -80,6 +80,11 @@ void main() {
 
     expect(find.text('Day 2 Schedule'), findsOneWidget);
     expect(find.text('Nutrition Policy Roundtable'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Closing Keynote'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.text('Closing Keynote'), findsOneWidget);
     expect(find.text('Opening Ceremony'), findsNothing);
   });

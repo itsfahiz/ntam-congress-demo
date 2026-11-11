@@ -8,11 +8,15 @@ class LightSearchField extends StatelessWidget {
     required this.controller,
     required this.hintText,
     required this.onChanged,
+    this.fillColor = AppColors.searchFill,
+    this.borderColor,
   });
 
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String> onChanged;
+  final Color fillColor;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -38,22 +42,30 @@ class LightSearchField extends StatelessWidget {
           color: AppColors.textSecondary,
         ),
         filled: true,
-        fillColor: AppColors.searchFill,
+        fillColor: fillColor,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 14,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-          borderSide: BorderSide.none,
+          borderSide: borderColor == null
+              ? BorderSide.none
+              : BorderSide(color: borderColor!),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-          borderSide: BorderSide.none,
+          borderSide: borderColor == null
+              ? BorderSide.none
+              : BorderSide(color: borderColor!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-          borderSide: const BorderSide(color: AppColors.accentBlue),
+          borderSide: BorderSide(
+            color: borderColor == null
+                ? AppColors.accentBlue
+                : AppColors.iconBlue,
+          ),
         ),
       ),
     );

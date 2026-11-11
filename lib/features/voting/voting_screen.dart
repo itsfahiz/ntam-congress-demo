@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -25,25 +26,28 @@ class _VotingScreenState extends State<VotingScreen> {
     _board = VotingBoard(CongressCatalog.polls);
   }
 
+  void _showNotice(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 108),
+        content: Text(message),
+      ),
+    );
+  }
+
   void _submit() {
     final result = _board.submit();
     switch (result) {
       case VoteCastResult.missingSelection:
-        setState(() => _validation = 'Choose an answer to submit a demo vote.');
+        setState(() => _validation = 'Choose an answer to vote.');
       case VoteCastResult.alreadyVoted:
-        setState(
-          () => _validation =
-              'You already voted in this poll. Reset demo votes to try again.',
-        );
+        setState(() => _validation = 'You already voted in this poll.');
       case VoteCastResult.recorded:
         setState(() => _validation = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Vote saved on this device. Results are simulated, not live counts.',
-            ),
-          ),
-        );
+        _showNotice('Vote submitted');
     }
   }
 
@@ -52,9 +56,7 @@ class _VotingScreenState extends State<VotingScreen> {
       _board.reset();
       _validation = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Demo votes were cleared on this screen.')),
-    );
+    _showNotice('Votes cleared');
   }
 
   @override
@@ -64,9 +66,23 @@ class _VotingScreenState extends State<VotingScreen> {
 
     return CongressFeatureScaffold(
       title: 'Live Voting',
-      trailing: CongressGoldHeaderButton(
+      titleAlign: TextAlign.start,
+      titleStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.w900,
+      ),
+      leading: CongressHeaderButton(
+        icon: Icons.chevron_left_rounded,
+        tooltip: 'Back',
+        outlined: true,
+        onPressed: () => context.pop(),
+      ),
+      trailing: CongressHeaderButton(
         icon: Icons.restart_alt_rounded,
         tooltip: 'Reset demo votes',
+        outlined: true,
+        foreground: AppColors.gold,
         onPressed: _reset,
       ),
       hero: const CongressHeroBanner(
@@ -74,130 +90,150 @@ class _VotingScreenState extends State<VotingScreen> {
         title: 'Audience Interaction',
         subtitle: 'Swipe polls, choose answers, and submit your vote',
         gradient: AppColors.goldBadge,
+        padding: EdgeInsets.fromLTRB(18, 20, 18, 20),
+        titleSize: 20,
+        titleWeight: FontWeight.w900,
+        badgeSize: 56,
+        titleSpacing: 8,
+        contentSpacing: 16,
       ),
       body: Column(
         children: [
+          const SizedBox(height: 12),
+          _PollIndicators(
+            count: _board.polls.length,
+            index: _board.index,
+            onSelected: (index) => setState(() {
+              _validation = null;
+              _board.index = index;
+            }),
+          ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
               children: [
-                Row(
-                  children: [
-                    if (voted)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.ceremonyWash,
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusPill,
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.fieldFill,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.navy.withValues(alpha: 0.04),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Icon(
-                              Icons.check_circle,
-                              size: 14,
-                              color: AppColors.gold,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'VOTED',
-                              style: TextStyle(
-                                color: AppColors.categoryInk,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
+                            if (voted)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.ceremonyWash,
+                                  borderRadius: BorderRadius.circular(
+                                    AppSizes.radiusPill,
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      size: 14,
+                                      color: AppColors.gold,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'VOTED',
+                                      style: TextStyle(
+                                        color: AppColors.categoryInk,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.talkWash,
+                                  borderRadius: BorderRadius.circular(
+                                    AppSizes.radiusPill,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'OPEN',
+                                  style: TextStyle(
+                                    color: AppColors.navyChip,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                poll.topicLabel,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.talkWash,
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusPill,
-                          ),
-                        ),
-                        child: const Text(
-                          'OPEN',
-                          style: TextStyle(
-                            color: AppColors.navyChip,
-                            fontSize: 11,
+                        const SizedBox(height: 16),
+                        Text(
+                          poll.question,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
+                            height: 1.2,
                           ),
                         ),
-                      ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        poll.topicLabel,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                        if (voted) ...[
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Simulated results',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        for (final option in poll.options) ...[
+                          _PollOptionTile(
+                            option: option,
+                            selected: _board.selectedOptionId == option.id,
+                            voted: voted,
+                            percent: _board.simulatedPercent(poll, option),
+                            count: _board.simulatedCount(poll, option),
+                            onTap: () => setState(() {
+                              _validation = null;
+                              _board.select(option.id);
+                            }),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      ],
                     ),
-                    Text(
-                      '${_board.index + 1} / ${_board.polls.length}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  poll.question,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  voted
-                      ? 'Simulated sample · ${_board.simulatedTotal(poll)} local votes'
-                      : 'Choose an answer. Counts stay on this device and are not live.',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                for (final option in poll.options) ...[
-                  _PollOptionTile(
-                    option: option,
-                    selected: _board.selectedOptionId == option.id,
-                    voted: voted,
-                    percent: _board.simulatedPercent(poll, option),
-                    count: _board.simulatedCount(poll, option),
-                    onTap: () => setState(() {
-                      _validation = null;
-                      _board.select(option.id);
-                    }),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                const Text(
-                  'Votes reset if you leave this screen. Results are simulated, not live attendee counts.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    height: 1.35,
                   ),
                 ),
               ],
@@ -219,7 +255,7 @@ class _VotingScreenState extends State<VotingScreen> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             child: Row(
               children: [
-                _RoundNavButton(
+                _SquareNavButton(
                   icon: Icons.chevron_left_rounded,
                   tooltip: 'Previous poll',
                   onPressed: _board.hasMultiplePolls
@@ -235,6 +271,9 @@ class _VotingScreenState extends State<VotingScreen> {
                     key: ValueKey(voted ? 'next-poll' : 'submit-vote'),
                     label: voted ? 'Next Poll' : 'Submit Vote',
                     showArrow: false,
+                    gradient: voted
+                        ? AppColors.createAccountButton
+                        : AppColors.primaryButton,
                     onPressed: voted
                         ? () => setState(() {
                             _validation = null;
@@ -244,7 +283,7 @@ class _VotingScreenState extends State<VotingScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                _RoundNavButton(
+                _SquareNavButton(
                   icon: Icons.chevron_right_rounded,
                   tooltip: 'Next poll',
                   onPressed: _board.hasMultiplePolls
@@ -259,6 +298,44 @@ class _VotingScreenState extends State<VotingScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PollIndicators extends StatelessWidget {
+  const _PollIndicators({
+    required this.count,
+    required this.index,
+    required this.onSelected,
+  });
+
+  final int count;
+  final int index;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < count; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          GestureDetector(
+            onTap: () => onSelected(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: i == index ? 22 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: i == index
+                    ? AppColors.accentBlue
+                    : AppColors.fieldBorder,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -282,8 +359,12 @@ class _PollOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fill = voted && selected
+        ? AppColors.talkWash
+        : const Color(0xFFF4F6FB);
+
     return Material(
-      color: AppColors.fieldFill,
+      color: fill,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: voted ? null : onTap,
@@ -291,6 +372,7 @@ class _PollOptionTile extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
           decoration: BoxDecoration(
+            color: fill,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: selected ? AppColors.accentBlue : AppColors.fieldBorder,
@@ -346,7 +428,7 @@ class _PollOptionTile extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    '$count simulated votes',
+                    '$count votes',
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
@@ -362,8 +444,8 @@ class _PollOptionTile extends StatelessWidget {
   }
 }
 
-class _RoundNavButton extends StatelessWidget {
-  const _RoundNavButton({
+class _SquareNavButton extends StatelessWidget {
+  const _SquareNavButton({
     required this.icon,
     required this.tooltip,
     required this.onPressed,
@@ -375,18 +457,29 @@ class _RoundNavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(14);
+    final enabled = onPressed != null;
+
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: AppColors.searchFill,
-        shape: const CircleBorder(),
+        color: AppColors.fieldFill,
+        borderRadius: radius,
         child: InkWell(
-          customBorder: const CircleBorder(),
           onTap: onPressed,
-          child: SizedBox(
+          borderRadius: radius,
+          child: Container(
             width: 48,
             height: 48,
-            child: Icon(icon, color: AppColors.textPrimary),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(color: AppColors.fieldBorder),
+            ),
+            child: Icon(
+              icon,
+              color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+            ),
           ),
         ),
       ),

@@ -153,10 +153,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('submit-vote')));
     await tester.pump();
-    expect(
-      find.text('Choose an answer to submit a demo vote.'),
-      findsOneWidget,
-    );
+    expect(find.text('Choose an answer to vote.'), findsOneWidget);
 
     await tester.tap(find.text('Very Good'));
     await tester.pump();
@@ -165,7 +162,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('VOTED'), findsOneWidget);
-    expect(find.textContaining('Simulated sample'), findsOneWidget);
+    expect(find.text('Simulated results'), findsOneWidget);
     expect(find.text('Next Poll'), findsOneWidget);
     expect(find.text('Submit Vote'), findsNothing);
     await dismissSnackBar(tester);

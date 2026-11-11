@@ -81,8 +81,8 @@ void main() {
   ) async {
     await pumpPhoneApp(tester);
 
-    await reveal(tester, find.text('Create Account →'));
-    await tester.tap(find.text('Create Account →'));
+    await reveal(tester, find.text('Create Account'));
+    await tester.tap(find.text('Create Account'));
     await tester.pumpAndSettle();
 
     expect(find.text('Join the'), findsOneWidget);
