@@ -19,29 +19,37 @@ migrate_working_dir/
 .idea/
 .vscode/
 
-# Flutter / Dart
+# Flutter / Dart (frontend/ and leftover root caches)
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+frontend/.dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
+frontend/build/
 /coverage/
+frontend/coverage/
 
 # Symbolication / obfuscation
 app.*.symbols
 app.*.map.json
 
-# Android Studio build outputs
+# Android Studio build outputs (new location and leftover root paths)
 /android/app/debug
 /android/app/profile
 /android/app/release
+frontend/android/app/debug
+frontend/android/app/profile
+frontend/android/app/release
 
 # Local secrets and credentials
 .env
 .env.*
+!.env.example
+!**/.env.example
 *.pem
 *.p12
 *.mobileprovision
@@ -54,6 +62,7 @@ key.properties
 *.aab
 *.ipa
 *.dSYM.zip
+/dist/
 
 # Local scratch from design extraction or device captures
 .tmp_pdf_pages/
