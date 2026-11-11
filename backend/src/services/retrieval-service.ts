@@ -104,6 +104,9 @@ function buildDocuments(): RetrievalDocument[] {
     };
     const text = [
       'venue',
+      // Query-side words for dates/location that never appear in catalog prose
+      // (title is "The Next Era of Nutrition & Health", dates are "May 22 - 23").
+      'congress event conference date dates when where location schedule start starts place taking held happening',
       event.title,
       event.dateLabel,
       event.location,
@@ -167,6 +170,24 @@ function tokenScore(queryTokens: string[], docTokens: Set<string>) {
   return score;
 }
 
+const DATE_PLACE_INTENT = new Set([
+  'date',
+  'dates',
+  'when',
+  'where',
+  'venue',
+  'location',
+  'place',
+  'start',
+  'starts',
+  'schedule',
+  'taking',
+  'held',
+  'happening',
+]);
+
+const EVENT_REF_INTENT = new Set(['congress', 'event', 'conference', 'ntam']);
+
 function phraseBonus(question: string, doc: RetrievalDocument) {
   const q = normalize(question);
   if (doc.type === 'session') {
@@ -181,6 +202,16 @@ function phraseBonus(question: string, doc: RetrievalDocument) {
     const venue = normalize(doc.payload.venue?.name ?? '');
     if (venue.length >= 10 && q.includes(venue)) return 8;
   }
+  return 0;
+}
+
+/** Lift day records for calendar/location questions so they clear MIN_SCORE. */
+function eventMetaBonus(queryTokens: string[], doc: RetrievalDocument) {
+  if (doc.type !== 'day') return 0;
+  const hasDatePlace = queryTokens.some((token) => DATE_PLACE_INTENT.has(token));
+  const hasEventRef = queryTokens.some((token) => EVENT_REF_INTENT.has(token));
+  if (hasDatePlace && hasEventRef) return 4;
+  if (hasDatePlace) return 2;
   return 0;
 }
 
@@ -199,7 +230,10 @@ export function retrieve(
     type: doc.type,
     id: doc.id,
     payload: doc.payload,
-    score: tokenScore(queryTokens, doc.tokens) + phraseBonus(question, doc),
+    score:
+      tokenScore(queryTokens, doc.tokens) +
+      phraseBonus(question, doc) +
+      eventMetaBonus(queryTokens, doc),
   } as RankedRecord))
     .filter((doc) => doc.score >= minScore)
     .sort(

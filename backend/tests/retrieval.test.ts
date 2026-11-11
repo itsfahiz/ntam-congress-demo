@@ -34,6 +34,14 @@ function assertKnownSource(record: RetrievalRecord) {
   assert.fail(`unknown source type ${unexpected}`);
 }
 
+function assertDayHasEventFacts(record: RetrievalRecord) {
+  assert.equal(record.type, 'day');
+  if (record.type !== 'day') return;
+  assert.match(record.payload.eventDateLabel, /May 22/);
+  assert.match(record.payload.eventLocation, /Dubai/);
+  assert.match(record.payload.venue.name, /Convention/);
+}
+
 test('retrieve finds the pediatric session and Sarah Johnson', () => {
   const records = retrieve(
     'Who is speaking at Future of Pediatric Nutrition?',
@@ -46,6 +54,16 @@ test('retrieve finds the pediatric session and Sarah Johnson', () => {
   );
 });
 
+test('retrieve finds the pediatric nutrition session from a natural speaker question', () => {
+  const records = retrieve(
+    'Tell me about the pediatric nutrition session and its speaker.',
+  );
+  assert.ok(records.length > 0);
+  records.forEach(assertKnownSource);
+  assert.ok(records.some((record) => record.type === 'session' && record.id === 'pediatric'));
+  assert.ok(records.some((record) => record.type === 'speaker' && record.id === 'sarah'));
+});
+
 test('retrieve finds venue and dates from catalog days', () => {
   const records = retrieve(
     'Where is the Dubai International Convention venue and when is day 1?',
@@ -54,6 +72,24 @@ test('retrieve finds venue and dates from catalog days', () => {
   records.forEach(assertKnownSource);
   assert.ok(records.some((record) => record.type === 'day'));
 });
+
+const EVENT_META_QUERIES = [
+  'What are the dates and venue of the congress?',
+  'When and where is the event?',
+  'What date does the congress start?',
+  'Where is the congress taking place?',
+];
+
+for (const question of EVENT_META_QUERIES) {
+  test(`retrieve finds catalog dates and venue for: ${question}`, () => {
+    const records = retrieve(question);
+    assert.ok(records.length > 0, question);
+    records.forEach(assertKnownSource);
+    const days = records.filter((record) => record.type === 'day');
+    assert.ok(days.length > 0, `expected day evidence for: ${question}`);
+    days.forEach(assertDayHasEventFacts);
+  });
+}
 
 test('retrieve returns nothing when the catalog has no match', () => {
   const records = retrieve(

@@ -95,6 +95,52 @@ test('POST /api/assistant/ask returns a grounded catalog answer', async () => {
   assert.ok(geminiCalls[0].records.length > 0);
 });
 
+test('POST /api/assistant/ask grounds the pediatric session speaker question', async () => {
+  const { response, body } = await postAsk({
+    question: 'Tell me about the pediatric nutrition session and its speaker.',
+  });
+  assert.equal(response.status, 200);
+  assert.equal(body.grounded, true);
+  assertCatalogSources(body.sources);
+  assert.ok(body.sources!.some((source) => source.type === 'session' && source.id === 'pediatric'));
+  assert.ok(body.sources!.some((source) => source.type === 'speaker' && source.id === 'sarah'));
+  assert.equal(geminiCalls.length, 1);
+  assert.ok(
+    geminiCalls[0].records.some(
+      (record) => record.type === 'session' && record.id === 'pediatric',
+    ),
+  );
+});
+
+const EVENT_META_QUESTIONS = [
+  'What are the dates and venue of the congress?',
+  'When and where is the event?',
+  'What date does the congress start?',
+  'Where is the congress taking place?',
+];
+
+for (const question of EVENT_META_QUESTIONS) {
+  test(`POST /api/assistant/ask grounds dates and venue for: ${question}`, async () => {
+    setGenerateContentOverride(async ({ question: asked, records }) => {
+      geminiCalls.push({ question: asked, records });
+      const day = records.find((record) => record.type === 'day');
+      if (!day || day.type !== 'day') return '';
+      return `The congress is ${day.payload.eventDateLabel} in ${day.payload.eventLocation}.`;
+    });
+    const { response, body } = await postAsk({ question });
+    assert.equal(response.status, 200);
+    assert.equal(body.grounded, true);
+    assertCatalogSources(body.sources);
+    assert.ok(body.sources!.some((source) => source.type === 'day'));
+    assert.equal(geminiCalls.length, 1);
+    const dayRecord = geminiCalls[0].records.find((record) => record.type === 'day');
+    assert.ok(dayRecord && dayRecord.type === 'day');
+    assert.match(dayRecord.payload.eventDateLabel, /May 22/);
+    assert.match(dayRecord.payload.eventLocation, /Dubai/);
+    assert.match(body.answer!, /May 22/);
+  });
+}
+
 test('POST /api/assistant/ask skips Gemini when nothing is retrieved', async () => {
   const { response, body } = await postAsk({
     question: 'What time does the airport hotel shuttle leave for Terminal 3?',
