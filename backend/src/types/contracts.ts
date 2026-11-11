@@ -116,6 +116,17 @@ export type QuestionRecord = {
   authorName: string;
   answered: boolean;
   createdAt: Date | string;
+  likeCount: number;
+  replyCount: number;
+  likedByMe: boolean;
+};
+
+export type QuestionReplyRecord = {
+  id: string;
+  questionId: string;
+  body: string;
+  authorName: string;
+  createdAt: Date | string;
 };
 
 export type GeminiGenerateArgs = {

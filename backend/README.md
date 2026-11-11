@@ -36,7 +36,9 @@ Default URL: `http://localhost:3000`
 | `GET`/`POST` | `/api/me` | Bearer token. Attendee profile |
 | `GET` | `/api/me/badge` | Bearer token. Signed QR verification URL |
 | `GET` | `/badge/verify` | Public HTML. Query `b` (badge id) and `s` (HMAC hex) |
-| `GET`/`POST` | `/api/questions` | Bearer token. Persistent Q&A |
+| `GET`/`POST` | `/api/questions` | Bearer token. Persistent Q&A with like/reply counts |
+| `POST`/`DELETE` | `/api/questions/:questionId/like` | Bearer token. Idempotent like / unlike |
+| `GET`/`POST` | `/api/questions/:questionId/replies` | Bearer token. List or add a reply |
 | `GET` | `/api/polls/active` | Bearer token. First active poll, counts, caller’s vote |
 | `GET` | `/api/polls` | Bearer token. All active polls, ordered, with counts |
 | `POST` | `/api/polls/:pollId/vote` | Bearer token. Body `{ "optionId": "<uuid>" }` |
@@ -58,7 +60,7 @@ Default model is `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`). Thinkin
    | Redirect URLs | `https://ntam-congress-api.onrender.com/auth/confirmed` |
 
    Do **not** use `http://localhost:3000`. Confirmation emails follow Site URL because the Flutter app does not set `emailRedirectTo`.
-5. Run `backend/db/migrations/001_attendee_profiles_and_questions.sql`, then `002_live_polls.sql`, then `003_add_congress_polls.sql` in the SQL editor. `003` only seeds polls 2 and 3; it does not change poll 1 or its votes.
+5. Run `backend/db/migrations/001_attendee_profiles_and_questions.sql`, then `002_live_polls.sql`, then `003_add_congress_polls.sql`, then `004_qa_interactions.sql` in the SQL editor. `003` only seeds polls 2 and 3. `004` adds likes and replies without changing existing questions.
 
 The API verifies access tokens with `GET /auth/v1/user` and uses `req.authUser.id` for inserts. Clients cannot supply a user id. `GET /auth/confirmed` is a public HTML page only; it does not read tokens or user data.
 
@@ -126,3 +128,7 @@ Keep the same `BADGE_SIGNING_SECRET` across deploys so already-issued QR codes k
 ```
 
 `GET /api/polls/active` still returns `{ "poll": … }` for the first poll in that order. Apply `002_live_polls.sql` then `003_add_congress_polls.sql` in Supabase. Do not expose `DATABASE_URL` to Flutter.
+
+### Q&A likes and replies
+
+Authenticated `GET /api/questions` includes `likeCount`, `replyCount` and `likedByMe`. `POST`/`DELETE /api/questions/:questionId/like` are idempotent. `GET`/`POST /api/questions/:questionId/replies` list and add replies; author name comes from the session profile, never from the client body. Attendee replies do not set `answered`. Apply `004_qa_interactions.sql` after the earlier migrations.
