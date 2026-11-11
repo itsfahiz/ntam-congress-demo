@@ -67,3 +67,5 @@ key.properties
 # Local scratch from design extraction or device captures
 .tmp_pdf_pages/
 .tmp_screens/
+
+/frontend/config.local.json

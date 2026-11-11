@@ -55,41 +55,48 @@ class GradientButton extends StatelessWidget {
           child: SizedBox(
             height: 54,
             width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (loading)
-                  const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.4,
-                      color: Colors.white,
-                    ),
-                  )
-                else ...[
-                  if (icon != null) ...[
-                    Icon(icon, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (loading)
+                      const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: Colors.white,
+                        ),
+                      )
+                    else ...[
+                      if (icon != null) ...[
+                        Icon(icon, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (showArrow) ...[
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ],
                   ],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (showArrow) ...[
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ],
-                ],
-              ],
+                ),
+              ),
             ),
           ),
         ),

@@ -9,6 +9,17 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
+/// Sign-up succeeded, but Supabase still requires email confirmation.
+/// The attendee is not authenticated until they verify and sign in.
+class EmailConfirmationRequiredException extends AuthException {
+  const EmailConfirmationRequiredException({this.email})
+    : super(
+        'Account created. Check your email to confirm before signing in.',
+      );
+
+  final String? email;
+}
+
 class RegistrationDraft {
   const RegistrationDraft({
     required this.fullName,
@@ -24,8 +35,13 @@ class RegistrationDraft {
 }
 
 abstract interface class AuthRepository {
+  String? get accessToken;
+
+  Future<Attendee?> restoreSession();
+
   Future<Attendee> signIn({required String email, required String password});
 
-  /// Creates a local in-memory attendee. This is not a real Nestlé account.
   Future<Attendee> register(RegistrationDraft draft);
+
+  Future<void> signOut();
 }

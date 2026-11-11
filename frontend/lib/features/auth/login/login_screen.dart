@@ -13,7 +13,9 @@ import 'widgets/login_form_card.dart';
 import 'widgets/login_hero_header.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialEmail});
+
+  final String? initialEmail;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -27,6 +29,27 @@ class _LoginScreenState extends State<LoginScreen> {
   var _obscurePassword = true;
   var _autovalidateMode = AutovalidateMode.disabled;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyInitialEmail(widget.initialEmail);
+  }
+
+  @override
+  void didUpdateWidget(covariant LoginScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final email = widget.initialEmail?.trim() ?? '';
+    if (email.isNotEmpty && email != oldWidget.initialEmail?.trim()) {
+      _applyInitialEmail(email);
+    }
+  }
+
+  void _applyInitialEmail(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return;
+    _emailController.text = email;
+  }
 
   @override
   void dispose() {
@@ -57,10 +80,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _showSocialSignInSheet() {
     return showSimulatedSocialAuthSheet(
       context: context,
-      title: 'Simulated social sign-in',
+      title: 'Google sign-in unavailable',
       message:
-          'Google and Apple are not connected. Continue as the demo attendee (Huda Latheef). No real account is created.',
-      dismissLabel: 'Cancel',
+          'Google and Apple sign-in are not configured for this assessment. Use email and password.',
+      dismissLabel: 'OK',
       onError: (message) {
         if (!mounted) return;
         setState(() => _errorMessage = message);

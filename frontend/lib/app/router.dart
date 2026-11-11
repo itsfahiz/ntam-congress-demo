@@ -1,9 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/widgets/main_shell.dart';
 import '../features/agenda/agenda_screen.dart';
+import '../features/assistant/assistant_screen.dart';
 import '../features/auth/login/login_screen.dart';
 import '../features/auth/register/register_screen.dart';
+import '../features/auth/splash/auth_splash_screen.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/exhibitors/exhibitors_screen.dart';
 import '../features/home/home_screen.dart';
@@ -19,23 +22,50 @@ import 'app_routes.dart';
 
 GoRouter createRouter(AuthController authController) {
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.splash,
     refreshListenable: authController,
     redirect: (context, state) {
-      final signedIn = authController.isSignedIn;
       final location = state.matchedLocation;
-      final onAuthGate =
-          location == AppRoutes.login || location == AppRoutes.register;
-
-      if (!signedIn && !onAuthGate) return AppRoutes.login;
-      if (signedIn && onAuthGate) return AppRoutes.home;
-      return null;
+      switch (authController.lifecycle) {
+        case AuthLifecycle.restoring:
+          return location == AppRoutes.splash ? null : AppRoutes.splash;
+        case AuthLifecycle.authenticated:
+          if (location == AppRoutes.splash ||
+              location == AppRoutes.login ||
+              location == AppRoutes.register) {
+            return AppRoutes.home;
+          }
+          return null;
+        case AuthLifecycle.unauthenticated:
+          if (location == AppRoutes.splash) return AppRoutes.login;
+          final onAuthGate =
+              location == AppRoutes.login || location == AppRoutes.register;
+          if (!onAuthGate) return AppRoutes.login;
+          return null;
+      }
     },
     routes: [
       GoRoute(
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (context, state) => const AuthSplashScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          final fromExtra = extra is String ? extra : null;
+          final fromQuery = state.uri.queryParameters['email'];
+          final email = (fromQuery ?? fromExtra)?.trim();
+          final initialEmail =
+              (email == null || email.isEmpty) ? null : email;
+          return MaterialPage<void>(
+            key: ValueKey(state.uri.toString()),
+            name: state.name,
+            child: LoginScreen(initialEmail: initialEmail),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.register,
@@ -111,6 +141,11 @@ GoRouter createRouter(AuthController authController) {
         path: AppRoutes.exhibitors,
         name: 'exhibitors',
         builder: (context, state) => const ExhibitorsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.assistant,
+        name: 'assistant',
+        builder: (context, state) => const AssistantScreen(),
       ),
     ],
   );

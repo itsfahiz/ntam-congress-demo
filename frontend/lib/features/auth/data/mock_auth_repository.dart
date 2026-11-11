@@ -32,6 +32,15 @@ class MockAuthRepository implements AuthRepository {
   var _nextBadge = 2;
 
   @override
+  String? get accessToken => null;
+
+  @override
+  Future<Attendee?> restoreSession() async => null;
+
+  @override
+  Future<void> signOut() async {}
+
+  @override
   Future<Attendee> signIn({
     required String email,
     required String password,

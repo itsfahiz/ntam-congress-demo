@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/light_sheet.dart';
-import '../data/auth_repository.dart';
-import '../data/mock_auth_repository.dart';
-import '../state/auth_controller.dart';
 
-/// Explains that Google/Apple are not connected, then optionally signs in
-/// the seeded local attendee.
+/// Google/Apple are not configured. This sheet does not sign anyone in.
 Future<void> showSimulatedSocialAuthSheet({
   required BuildContext context,
   required String title,
@@ -15,7 +11,7 @@ Future<void> showSimulatedSocialAuthSheet({
   required String dismissLabel,
   required ValueChanged<String> onError,
 }) async {
-  final confirmed = await showModalBottomSheet<bool>(
+  await showModalBottomSheet<void>(
     context: context,
     backgroundColor: AppColors.card,
     showDragHandle: true,
@@ -45,11 +41,7 @@ Future<void> showSimulatedSocialAuthSheet({
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continue as demo attendee'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => Navigator.pop(context),
                 child: Text(dismissLabel),
               ),
             ],
@@ -58,16 +50,4 @@ Future<void> showSimulatedSocialAuthSheet({
       );
     },
   );
-
-  if (confirmed != true || !context.mounted) return;
-
-  FocusScope.of(context).unfocus();
-  try {
-    await AuthScope.of(context).signIn(
-      email: MockAuthRepository.demoAttendee.email,
-      password: MockAuthRepository.demoPassword,
-    );
-  } on AuthException catch (error) {
-    onError(error.message);
-  }
 }

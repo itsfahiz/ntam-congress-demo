@@ -13,6 +13,7 @@ import '../data/auth_repository.dart';
 import '../state/auth_controller.dart';
 import '../widgets/auth_switch_prompt.dart';
 import '../widgets/simulated_social_auth_sheet.dart';
+import 'register_success_card.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -31,6 +32,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   var _obscurePassword = true;
   var _acceptedTerms = false;
   var _autovalidateMode = AutovalidateMode.disabled;
+  var _awaitingEmailConfirmation = false;
+  String? _pendingEmail;
   String? _errorMessage;
 
   @override
@@ -59,6 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     if (!formValid) return;
 
+    final email = _emailController.text.trim().toLowerCase();
     try {
       await AuthScope.of(context).register(
         RegistrationDraft(
@@ -68,18 +72,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _passwordController.text,
         ),
       );
+    } on EmailConfirmationRequiredException catch (error) {
+      if (!mounted) return;
+      _showConfirmationPending(error.email ?? email);
     } on AuthException catch (error) {
       if (!mounted) return;
       setState(() => _errorMessage = error.message);
     }
   }
 
+  void _showConfirmationPending(String email) {
+    _passwordController.clear();
+    _nameController.clear();
+    _organizationController.clear();
+    _emailController.clear();
+    setState(() {
+      _awaitingEmailConfirmation = true;
+      _pendingEmail = email;
+      _acceptedTerms = false;
+      _obscurePassword = true;
+      _autovalidateMode = AutovalidateMode.disabled;
+      _errorMessage = null;
+    });
+  }
+
+  void _continueToSignIn() {
+    final email = (_pendingEmail ?? '').trim();
+    context.goNamed(
+      'login',
+      queryParameters: email.isEmpty
+          ? const <String, String>{}
+          : {'email': email},
+      extra: email.isEmpty ? null : email,
+    );
+  }
+
   Future<void> _showSocialSignUpSheet() {
     return showSimulatedSocialAuthSheet(
       context: context,
-      title: 'Simulated social sign-up',
+      title: 'Google sign-up unavailable',
       message:
-          'Google and Apple are not connected. Continue as the demo attendee, or use the form. No real account is created.',
+          'Google and Apple sign-up are not configured for this assessment. Use the email form.',
       dismissLabel: 'Use the form instead',
       onError: (message) {
         if (!mounted) return;
@@ -115,57 +148,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final auth = AuthScope.of(context);
 
-    return AuthPageScaffold(
-      child: Column(
-        children: [
-          const Text(
-            'Join the',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              height: 1.05,
+    return PopScope(
+      canPop: !_awaitingEmailConfirmation,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !_awaitingEmailConfirmation) return;
+        _continueToSignIn();
+      },
+      child: AuthPageScaffold(
+        child: Column(
+          children: [
+            const Text(
+              'Join the',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
+                height: 1.05,
+              ),
             ),
-          ),
-          const Text(
-            'NESTLÉ',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.gold,
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              height: 1.05,
-              letterSpacing: 0.4,
+            const Text(
+              'NESTLÉ',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.gold,
+                fontSize: 36,
+                fontWeight: FontWeight.w900,
+                height: 1.05,
+                letterSpacing: 0.4,
+              ),
             ),
-          ),
-          const Text(
-            'CONGRESS',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.gold,
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              height: 1.05,
-              letterSpacing: 0.4,
+            const Text(
+              'CONGRESS',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.gold,
+                fontSize: 36,
+                fontWeight: FontWeight.w900,
+                height: 1.05,
+                letterSpacing: 0.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Create your attendee profile and access\nsessions, resources, voting and Q&A.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.86),
-              fontSize: 14.5,
-              height: 1.4,
+            const SizedBox(height: 12),
+            Text(
+              _awaitingEmailConfirmation
+                  ? 'Check your inbox to verify your attendee email.'
+                  : 'Create your attendee profile and access\nsessions, resources, voting and Q&A.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.86),
+                fontSize: 14.5,
+                height: 1.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 22),
-          AuthCard(
-            child: Form(
-              key: _formKey,
-              autovalidateMode: _autovalidateMode,
-              child: Column(
+            const SizedBox(height: 22),
+            if (_awaitingEmailConfirmation)
+              RegisterSuccessCard(
+                email: _pendingEmail ?? '',
+                onContinue: _continueToSignIn,
+              )
+            else
+              AuthCard(
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: _autovalidateMode,
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CongressTextField(
@@ -319,13 +366,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 18),
-          AuthSwitchPrompt(
-            prompt: 'Already have an account? ',
-            actionLabel: 'Sign In',
-            onAction: auth.isLoading ? null : () => context.go(AppRoutes.login),
-          ),
-        ],
+            if (!_awaitingEmailConfirmation) ...[
+              const SizedBox(height: 18),
+              AuthSwitchPrompt(
+                prompt: 'Already have an account? ',
+                actionLabel: 'Sign In',
+                onAction: auth.isLoading
+                    ? null
+                    : () => context.go(AppRoutes.login),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
