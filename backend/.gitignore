@@ -4,5 +4,6 @@ node_modules/
 coverage/
 dist/
 build/
+*.tsbuildinfo
 npm-debug.log*
 .DS_Store

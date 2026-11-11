@@ -1,6 +1,7 @@
-import pg from 'pg';
+import { Pool } from 'pg';
+import type { AppError } from '../types/http.js';
 
-let pool;
+let pool: Pool | undefined;
 
 /**
  * PostgreSQL pool for later persistence.
@@ -9,12 +10,12 @@ let pool;
 export function getPool() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    const error = new Error('DATABASE_URL is not configured.');
+    const error = new Error('DATABASE_URL is not configured.') as AppError;
     error.status = 503;
     throw error;
   }
   if (!pool) {
-    pool = new pg.Pool({
+    pool = new Pool({
       connectionString,
       max: 5,
     });

@@ -3,7 +3,13 @@
  * Source of truth for Phase 1 read-only endpoints. Not a database.
  */
 
-export const event = {
+import type {
+  CatalogEvent,
+  CatalogSession,
+  CatalogSpeaker,
+} from '../src/types/contracts.js';
+
+export const event: CatalogEvent = {
   title: 'The Next Era of Nutrition & Health',
   dateLabel: 'May 22 - 23, 2026',
   location: 'Dubai, UAE',
@@ -31,7 +37,7 @@ export const event = {
   ],
 };
 
-export const speakers = [
+export const speakers: CatalogSpeaker[] = [
   {
     id: 'sarah',
     fullName: 'Dr. Sarah Johnson',
@@ -74,7 +80,7 @@ export const speakers = [
   },
 ];
 
-export const sessions = [
+export const sessions: CatalogSession[] = [
   {
     id: 'opening',
     day: 'day1',

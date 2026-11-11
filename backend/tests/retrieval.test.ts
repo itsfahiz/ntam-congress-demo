@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { retrieve } from '../src/services/retrieval-service.js';
+import type { RetrievalRecord } from '../src/types/contracts.js';
+
+const SESSION_IDS = new Set([
+  'opening',
+  'welcome',
+  'pediatric',
+  'research',
+  'policy',
+  'translational',
+  'workshop',
+  'closing',
+]);
+const SPEAKER_IDS = new Set(['sarah', 'hassan', 'ahmed', 'committee']);
+const DAY_IDS = new Set(['day1', 'day2']);
+
+function assertKnownSource(record: RetrievalRecord) {
+  const sourceType = record.type;
+  if (sourceType === 'session') {
+    assert.ok(SESSION_IDS.has(record.id), `unknown session id ${record.id}`);
+    return;
+  }
+  if (sourceType === 'speaker') {
+    assert.ok(SPEAKER_IDS.has(record.id), `unknown speaker id ${record.id}`);
+    return;
+  }
+  if (sourceType === 'day') {
+    assert.ok(DAY_IDS.has(record.id), `unknown day id ${record.id}`);
+    return;
+  }
+  const unexpected: never = sourceType;
+  assert.fail(`unknown source type ${unexpected}`);
+}
+
+test('retrieve finds the pediatric session and Sarah Johnson', () => {
+  const records = retrieve(
+    'Who is speaking at Future of Pediatric Nutrition?',
+  );
+  assert.ok(records.length > 0);
+  records.forEach(assertKnownSource);
+  assert.deepEqual(
+    records.map((record) => `${record.type}:${record.id}`).sort(),
+    ['session:pediatric', 'speaker:sarah'],
+  );
+});
+
+test('retrieve finds venue and dates from catalog days', () => {
+  const records = retrieve(
+    'Where is the Dubai International Convention venue and when is day 1?',
+  );
+  assert.ok(records.length > 0);
+  records.forEach(assertKnownSource);
+  assert.ok(records.some((record) => record.type === 'day'));
+});
+
+test('retrieve returns nothing when the catalog has no match', () => {
+  const records = retrieve(
+    'What time does the airport hotel shuttle leave for Terminal 3?',
+  );
+  assert.deepEqual(records, []);
+});
