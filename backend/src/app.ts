@@ -6,6 +6,7 @@ import { badgeVerifyRouter } from './routes/badge.js';
 import { catalogRouter } from './routes/catalog.js';
 import { healthRouter } from './routes/health.js';
 import { meRouter } from './routes/me.js';
+import { pollsRouter } from './routes/polls.js';
 import { questionsRouter } from './routes/questions.js';
 
 export function createApp() {
@@ -36,6 +37,7 @@ export function createApp() {
   app.use('/api', catalogRouter);
   app.use('/api', assistantRouter);
   app.use('/api', meRouter);
+  app.use('/api', pollsRouter);
   app.use('/api', questionsRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);

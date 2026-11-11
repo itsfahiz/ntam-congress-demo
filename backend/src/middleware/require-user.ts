@@ -3,6 +3,13 @@ import type { AuthUser } from '../types/contracts.js';
 import { publicError } from '../types/http.js';
 
 type FetchImpl = typeof fetch;
+type UserResolver = (token: string) => Promise<AuthUser>;
+
+let userResolverOverride: UserResolver | null = null;
+
+export function setUserResolverOverride(fn: UserResolver | null) {
+  userResolverOverride = fn;
+}
 
 export function bearerToken(req: {
   headers: { authorization?: string | string[] };
@@ -18,6 +25,9 @@ export async function resolveSupabaseUser(
 ): Promise<AuthUser> {
   if (!token) {
     throw publicError(401, 'Sign in required.', 'unauthorized');
+  }
+  if (userResolverOverride) {
+    return userResolverOverride(token);
   }
   const baseUrl = process.env.SUPABASE_URL?.trim();
   const anonKey = process.env.SUPABASE_ANON_KEY?.trim();
