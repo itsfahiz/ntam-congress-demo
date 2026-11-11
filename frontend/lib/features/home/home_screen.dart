@@ -6,6 +6,7 @@ import '../../app/app_routes.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_background.dart';
 import '../../core/widgets/light_sheet.dart';
+import '../assistant/widgets/congress_ai_home_entry.dart';
 import '../auth/domain/attendee.dart';
 import '../auth/state/auth_controller.dart';
 import '../congress/data/congress_catalog.dart';
@@ -179,6 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SliverPadding(
                       padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
                       sliver: SliverToBoxAdapter(child: FeaturedEventCard()),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: CongressAiHomeEntry(
+                          onTap: () => context.push(AppRoutes.assistant),
+                        ),
+                      ),
                     ),
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
