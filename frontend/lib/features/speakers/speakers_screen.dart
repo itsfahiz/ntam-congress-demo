@@ -8,6 +8,7 @@ import '../../core/widgets/congress_hero_banner.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
+import '../saved/state/saved_items_controller.dart';
 import 'widgets/speaker_card.dart';
 import 'widgets/speaker_detail_sheet.dart';
 
@@ -20,7 +21,6 @@ class SpeakersScreen extends StatefulWidget {
 
 class _SpeakersScreenState extends State<SpeakersScreen> {
   final _searchController = TextEditingController();
-  final _favoriteIds = <String>{};
   SpeakerFocus? _focus;
   var _favoritesOnly = false;
 
@@ -30,21 +30,24 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
     super.dispose();
   }
 
-  List<CongressSpeaker> get _visibleSpeakers {
+  List<CongressSpeaker> _visibleSpeakers(Set<String> favoriteIds) {
     return CongressCatalog.filterSpeakers(
       focus: _focus,
       query: _searchController.text,
-      favoriteIds: _favoriteIds,
+      favoriteIds: favoriteIds,
       favoritesOnly: _favoritesOnly,
     );
   }
 
-  void _toggleFavorite(String id) {
-    setState(() {
-      if (!_favoriteIds.add(id)) {
-        _favoriteIds.remove(id);
-      }
-    });
+  Future<void> _toggleFavorite(String id) async {
+    try {
+      await SavedItemsScope.of(context).toggle('speaker', id);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   Future<void> _pickFocus() async {
@@ -79,7 +82,8 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final speakers = _visibleSpeakers;
+    final saved = SavedItemsScope.of(context);
+    final speakers = _visibleSpeakers(saved.idsFor('speaker'));
 
     return CongressFeatureScaffold(
       title: 'Speakers',
@@ -156,7 +160,7 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
                       final speaker = speakers[index];
                       return SpeakerCard(
                         speaker: speaker,
-                        favorite: _favoriteIds.contains(speaker.id),
+                        favorite: saved.isSaved('speaker', speaker.id),
                         onTap: () =>
                             showSpeakerDetailSheet(context, speaker: speaker),
                         onFavorite: () => _toggleFavorite(speaker.id),

@@ -10,7 +10,7 @@ import {
 export const savedRouter = Router();
 savedRouter.use('/saved', requireUser());
 
-const itemType = z.enum(['session', 'resource']);
+const itemType = z.enum(['session', 'resource', 'speaker']);
 const itemId = z.string().regex(/^[a-z0-9-]{1,80}$/);
 const saveBody = z.strictObject({ itemType, itemId });
 

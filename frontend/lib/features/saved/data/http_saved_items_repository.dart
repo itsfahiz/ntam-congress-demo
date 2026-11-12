@@ -78,7 +78,7 @@ class HttpSavedItemsRepository implements SavedItemsRepository {
       if (item is! Map) continue;
       final type = item['itemType'];
       final id = item['itemId'];
-      if ((type == 'session' || type == 'resource') &&
+      if ((type == 'session' || type == 'resource' || type == 'speaker') &&
           id is String && id.isNotEmpty) {
         keys.add('$type:$id');
       }

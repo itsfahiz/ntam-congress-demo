@@ -20,14 +20,18 @@ void main() {
     expect(controller.count, 2);
     expect(controller.countFor('session'), 1);
     expect(controller.countFor('resource'), 1);
+    await controller.toggle('speaker', 'sarah');
+    expect(controller.countFor('speaker'), 1);
+    expect(controller.count, 3);
 
     await controller.loadFor('amira@example.com');
     expect(controller.count, 0);
     await controller.loadFor('huda@example.com');
-    expect(controller.count, 2);
+    expect(controller.count, 3);
     await controller.toggle('session', 'opening');
     expect(controller.isSaved('session', 'opening'), false);
     expect(controller.isSaved('resource', 'programme'), true);
+    expect(controller.isSaved('speaker', 'sarah'), true);
   });
 
   testWidgets('bookmarking Agenda updates Profile Saved and opens saved sessions', (tester) async {
@@ -79,5 +83,50 @@ void main() {
     await tester.tap(find.text('Resources (0)'));
     await tester.pumpAndSettle();
     expect(find.text('No saved resources yet.'), findsOneWidget);
+  });
+
+  testWidgets('speaker star saves across navigation and appears under saved speakers', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const CongressApp());
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Enter your email'),
+      'huda@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Enter your password'),
+      'congress',
+    );
+    await tester.tap(find.text('Sign In'));
+    await tester.pumpAndSettle();
+    await tapHomeShortcut(tester, 'Speakers');
+    await tester.tap(find.byTooltip('Favorite speaker').first);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Remove favorite'), findsOneWidget);
+    await tester.tap(find.byTooltip('Show favorites'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
+    expect(find.text('Dr. Hassan Ali'), findsNothing);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Saved'),
+      150,
+      scrollable: find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('01'), findsOneWidget);
+    await tester.tap(find.text('Saved'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Speakers (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
   });
 }
