@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ntam_congress_demo/features/congress/data/congress_catalog.dart';
 import 'package:ntam_congress_demo/features/congress/domain/congress_models.dart';
@@ -27,7 +29,8 @@ void main() {
       (item) => item.id == 'session-recap',
     );
     final bytes = await ResourceFileService.bytes(resource);
-    expect(bytes.length, greaterThan(2000));
+    // The original demo recap contains multiple moving slides, not a single frame.
+    expect(bytes.length, greaterThan(5000));
     expect(ascii.decode(bytes.skip(4).take(4).toList()), 'ftyp');
     expect(ResourceFileService.filename(resource), endsWith('.mp4'));
   });
@@ -38,4 +41,37 @@ void main() {
     );
     await expectLater(DemoResourcePdf.build(video), throwsArgumentError);
   });
+
+  test('Android Download transfers actual resource bytes to the native bridge',
+      () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const channel = MethodChannel('ntam.congress/downloads');
+    addTearDown(() {
+      messenger.setMockMethodCallHandler(channel, null);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    var receivedCount = 0;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'saveToDownloads');
+      final args = Map<String, Object?>.from(call.arguments as Map);
+      final name = args['filename'] as String;
+      final bytes = args['bytes'] as Uint8List;
+      expect(bytes.length, greaterThan(500));
+      expect(name, startsWith('ntam-'));
+      expect(args['mimeType'], 'application/pdf');
+      receivedCount++;
+      return 'Downloads/NTAM Congress/$name';
+    });
+
+    final programme = CongressCatalog.resources.singleWhere(
+      (item) => item.id == 'programme',
+    );
+    final location = await ResourceFileService.download(programme);
+    expect(location, 'Downloads/NTAM Congress/ntam-programme.pdf');
+    expect(receivedCount, 1);
+  });
+
 }
