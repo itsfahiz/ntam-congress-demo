@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { event, sessions, speakers } from '../../data/catalog.js';
+import { sessions, speakers } from '../../data/catalog.js';
 import { resources } from '../../data/resources.js';
 import type { AssistantSource, AuthUser } from '../types/contracts.js';
 import { getProfile } from './profile-service.js';
