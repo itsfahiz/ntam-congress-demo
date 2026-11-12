@@ -19,6 +19,12 @@ export const meRouter = Router();
 const profileBody = z.strictObject({
   fullName: z.string().trim().min(2).max(80),
   organization: z.string().trim().max(80).default(''),
+  phone: z.string().trim().max(32).regex(/^[+0-9() -]*$/)
+    .refine((value) => {
+      const digits = value.replace(/\D/g, '').length;
+      return value.length === 0 || (digits >= 7 && digits <= 15);
+    }, 'Provide a valid phone number (7–15 digits), or leave it blank.')
+    .optional(),
 });
 
 meRouter.use('/me', requireUser());
@@ -59,6 +65,7 @@ meRouter.post('/me', async (req, res, next) => {
       userId: authUser.id,
       fullName: body.fullName,
       organization: body.organization,
+      phone: body.phone,
     });
     res.json({
       profile: {

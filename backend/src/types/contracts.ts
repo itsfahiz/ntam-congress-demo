@@ -104,6 +104,7 @@ export type AttendeeProfile = {
   userId: string;
   fullName: string;
   organization: string;
+  phone: string;
   badgeId: string;
   email: string | null;
 };
