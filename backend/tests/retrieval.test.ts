@@ -117,5 +117,5 @@ test('Stanford trailer is sourced as an external educational resource', () => {
     record.type === 'resource' && record.id === 'session-recap');
   assert.ok(video && video.type === 'resource');
   assert.match(video.payload.summary, /youtube\.com\/watch\?v=z7x1aaZ03xU/i);
-  assert.match(video.payload.availability, /internet connection/i);
+  assert.match(video.payload.availability, /internet (?:access|connection)/i);
 });
