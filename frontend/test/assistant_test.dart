@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ntam_congress_demo/app/app_routes.dart';
 import 'package:ntam_congress_demo/app/theme/app_theme.dart';
 import 'package:ntam_congress_demo/features/assistant/assistant_answer_text.dart';
 import 'package:ntam_congress_demo/features/assistant/assistant_screen.dart';
