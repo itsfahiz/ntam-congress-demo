@@ -10,6 +10,7 @@ import '../../core/widgets/light_sheet.dart';
 import '../auth/domain/attendee.dart';
 import '../auth/state/auth_controller.dart';
 import '../congress/data/congress_catalog.dart';
+import '../saved/state/saved_items_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,6 +18,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final attendee = AuthScope.of(context).attendee;
+    final saved = SavedItemsScope.of(context);
 
     return CongressFeatureScaffold(
       title: 'My Profile',
@@ -69,14 +71,11 @@ class ProfileScreen extends StatelessWidget {
                     Expanded(
                       child: _StatTile(
                         icon: Icons.bookmark_rounded,
-                        value: '00',
+                        value: saved.isLoading || saved.error != null
+                            ? '--'
+                            : saved.count.toString().padLeft(2, '0'),
                         label: 'Saved',
-                        onTap: () => showDemoLimitationSheet(
-                          context,
-                          title: 'Saved items',
-                          message:
-                              'Bookmarks are kept on each screen, not on this profile.',
-                        ),
+                        onTap: () => context.push(AppRoutes.saved),
                       ),
                     ),
                     const SizedBox(width: 10),

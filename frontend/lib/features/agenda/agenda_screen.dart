@@ -7,6 +7,7 @@ import '../../core/widgets/congress_filter_chips.dart';
 import '../../core/widgets/light_search_field.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
+import '../saved/state/saved_items_controller.dart';
 import 'widgets/agenda_day_selector.dart';
 import 'widgets/agenda_session_card.dart';
 import 'widgets/session_detail_sheet.dart';
@@ -20,7 +21,6 @@ class AgendaScreen extends StatefulWidget {
 
 class _AgendaScreenState extends State<AgendaScreen> {
   final _searchController = TextEditingController();
-  final _bookmarkedIds = <String>{};
   CongressDay _day = CongressDay.day1;
   SessionTrack? _track;
   bool _searchOpen = false;
@@ -50,17 +50,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
     });
   }
 
-  void _toggleBookmark(String id) {
-    setState(() {
-      if (!_bookmarkedIds.add(id)) {
-        _bookmarkedIds.remove(id);
-      }
-    });
+  Future<void> _toggleBookmark(String id) async {
+    try {
+      await SavedItemsScope.of(context).toggle('session', id);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final sessions = _visibleSessions;
+    final saved = SavedItemsScope.of(context);
 
     return CongressFeatureScaffold(
       title: 'Congress Agenda',
@@ -182,7 +186,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                       final session = sessions[index];
                       return AgendaSessionCard(
                         session: session,
-                        bookmarked: _bookmarkedIds.contains(session.id),
+                        bookmarked: saved.isSaved('session', session.id),
                         onTap: () =>
                             showSessionDetailSheet(context, session: session),
                         onBookmark: () => _toggleBookmark(session.id),
