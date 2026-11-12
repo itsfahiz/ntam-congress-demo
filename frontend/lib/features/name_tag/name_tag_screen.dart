@@ -4,14 +4,19 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
-import '../../core/widgets/demo_limitation_sheet.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../auth/state/auth_controller.dart';
 import '../congress/data/congress_catalog.dart';
+import 'badge_pass_pdf.dart';
+import 'badge_pass_print.dart';
 import 'data/badge_qr_repository.dart';
+import 'data/http_badge_qr_repository.dart';
 
 class NameTagScreen extends StatefulWidget {
-  const NameTagScreen({super.key});
+  const NameTagScreen({super.key, this.layoutPdf});
+
+  /// Production uses [layoutBadgePassPdf]. Tests inject a fake.
+  final BadgePdfLayout? layoutPdf;
 
   @override
   State<NameTagScreen> createState() => _NameTagScreenState();
@@ -22,6 +27,7 @@ class _NameTagScreenState extends State<NameTagScreen> {
   String? _verifyUrl;
   String? _error;
   var _loading = false;
+  var _printing = false;
 
   @override
   void didChangeDependencies() {
@@ -54,6 +60,70 @@ class _NameTagScreenState extends State<NameTagScreen> {
         });
   }
 
+  void _notice(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _printPass() async {
+    if (_printing) return;
+    final attendee = AuthScope.of(context).attendee;
+    if (attendee == null) {
+      _notice('Sign in to print your name tag.');
+      return;
+    }
+    if (_loading && (_verifyUrl == null || _verifyUrl!.isEmpty)) {
+      _notice('Your verification badge is still loading.');
+      return;
+    }
+
+    setState(() => _printing = true);
+    try {
+      var url = _verifyUrl;
+      if (url == null ||
+          url.isEmpty ||
+          !HttpBadgeQrRepository.isSignedVerifyUrl(url)) {
+        try {
+          url = await BadgeQrScope.of(context).issueVerifyUrl();
+          if (!mounted) return;
+          setState(() {
+            _verifyUrl = url;
+            _error = null;
+          });
+        } on BadgeQrException catch (error) {
+          if (!mounted) return;
+          _notice(error.message);
+          return;
+        } catch (_) {
+          if (!mounted) return;
+          _notice('Could not load your verification badge.');
+          return;
+        }
+      }
+      if (!HttpBadgeQrRepository.isSignedVerifyUrl(url)) {
+        if (!mounted) return;
+        _notice('Could not load your verification badge.');
+        return;
+      }
+
+      final data = BadgePassData.tryCreate(attendee: attendee, verifyUrl: url);
+      if (data == null) {
+        if (!mounted) return;
+        _notice('Could not load your verification badge.');
+        return;
+      }
+
+      final bytes = await buildBadgePassPdf(data);
+      if (!mounted) return;
+      final layout = widget.layoutPdf ?? layoutBadgePassPdf;
+      await layout(bytes);
+    } catch (_) {
+      if (!mounted) return;
+      _notice('Could not open the print preview.');
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final attendee = AuthScope.of(context).attendee;
@@ -78,11 +148,7 @@ class _NameTagScreenState extends State<NameTagScreen> {
         tooltip: 'Print',
         outlined: true,
         foreground: AppColors.gold,
-        onPressed: () => showDemoLimitationSheet(
-          context,
-          title: 'Printing is not connected',
-          message: 'This app does not send the badge to a printer.',
-        ),
+        onPressed: _printPass,
       ),
       body: attendee == null
           ? const Center(
