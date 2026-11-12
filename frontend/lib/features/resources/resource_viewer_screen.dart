@@ -185,10 +185,10 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_youtubeController case final controller?)
+          if (_youtubeController != null)
             YoutubePlayer(
               key: const ValueKey('stanford-embedded-youtube-player'),
-              controller: controller,
+              controller: _youtubeController!,
               aspectRatio: 16 / 9,
             )
           else
