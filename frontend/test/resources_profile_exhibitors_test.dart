@@ -128,7 +128,7 @@ void main() {
     expect(find.text('Congress Scientific Programme'), findsOneWidget);
     expect(find.text('Pediatric Nutrition Guide'), findsOneWidget);
     expect(find.text('Keynote Presentation Slides'), findsNothing);
-    expect(find.text('Day 1 Session Recap'), findsNothing);
+    expect(find.text('Introduction to Food & Health'), findsNothing);
 
     await tester.tap(find.byTooltip('Browse folders'));
     await tester.pumpAndSettle();

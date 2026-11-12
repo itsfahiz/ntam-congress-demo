@@ -84,3 +84,10 @@ Extra tests before PR #7 merge:
 3. Download PDF/MP4 and confirm visible files in Files/Downloads/NTAM Congress. Do not mistake a PostgreSQL bookmark for a local file.
 4. Verify video playback time advances, slides/seek work and the short illustrative captions change.
 5. Run `flutter build apk --release --dart-define-from-file=config.local.json` before freezing. New Android MediaStore integration is not covered by Dart widget tests.
+
+## Updated external educational video
+Stanford Introduction to Food & Health (official course trailer): https://www.youtube.com/watch?v=z7x1aaZ03xU
+- External YouTube link, with clear Stanford attribution and not a congress recording.
+- The saved resource ID remains `session-recap` so existing PostgreSQL bookmarks stay valid.
+- PDF documents still use Android Save/Share; external video uses Watch Video.
+- Re-run backend and Flutter tests and verify external YouTube app/browser launch on Android.

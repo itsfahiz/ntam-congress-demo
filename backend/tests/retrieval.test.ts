@@ -108,5 +108,14 @@ test('retrieval finds grounded downloadable demo resource availability', () => {
   const resource = records.find((record) =>
     record.type === 'resource' && record.id === 'pediatric-guide');
   assert.ok(resource && resource.type === 'resource');
-  assert.match(resource.payload.availability, /available for download/i);
+  assert.match(resource.payload.availability, /save\/share/i);
+});
+
+test('Stanford trailer is sourced as an external educational resource', () => {
+  const records = retrieve('Where can I watch Stanford Introduction to Food and Health trailer?');
+  const video = records.find((record) =>
+    record.type === 'resource' && record.id === 'session-recap');
+  assert.ok(video && video.type === 'resource');
+  assert.match(video.payload.summary, /youtube\.com\/watch\?v=z7x1aaZ03xU/i);
+  assert.match(video.payload.availability, /internet connection/i);
 });

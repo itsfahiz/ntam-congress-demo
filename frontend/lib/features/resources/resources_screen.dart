@@ -11,6 +11,7 @@ import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
 import '../saved/state/saved_items_controller.dart';
 import 'data/resource_file_service.dart';
+import 'data/resource_video_links.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -67,6 +68,22 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     }
   }
 
+  Future<void> _watchVideo(CongressResource resource) async {
+    try {
+      final opened = await ResourceVideoLinks.watch(resource.id);
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open YouTube. Check your connection.')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open YouTube. Check your connection.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final resources = _visible;
@@ -102,7 +119,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
       hero: const CongressHeroBanner(
         icon: Icons.cloud_download_rounded,
         title: 'Congress Library',
-        subtitle: 'Open, bookmark and download demo media',
+        subtitle: 'Documents and educational videos',
         padding: EdgeInsets.fromLTRB(18, 22, 18, 22),
         titleSize: 22,
         titleWeight: FontWeight.w900,
@@ -207,7 +224,9 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                         resource: resource,
                         saved: saved.isSaved('resource', resource.id),
                         onOpen: () => _openResource(resource),
-                        onDownload: () => _download(resource),
+                        onDownload: () => resource.kind == ResourceKind.video
+                            ? _watchVideo(resource)
+                            : _download(resource),
                         onSave: () => _toggleSaved(resource.id),
                       );
                     },
@@ -394,7 +413,7 @@ class _ResourceCard extends StatelessWidget {
   final VoidCallback onSave;
 
   String get _resourceLabel => resource.kind == ResourceKind.video
-      ? 'Demo video · MP4'
+      ? 'Stanford University · YouTube'
       : resource.kind == ResourceKind.slides
           ? 'Demo slides · PDF'
           : 'Original demo · PDF';
@@ -534,7 +553,9 @@ class _ResourceCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Download',
+                    tooltip: resource.kind == ResourceKind.video
+                        ? 'Watch on YouTube'
+                        : 'Download',
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
@@ -542,8 +563,10 @@ class _ResourceCard extends StatelessWidget {
                       minHeight: 36,
                     ),
                     onPressed: onDownload,
-                    icon: const Icon(
-                      Icons.download_rounded,
+                    icon: Icon(
+                      resource.kind == ResourceKind.video
+                          ? Icons.play_circle_outline_rounded
+                          : Icons.download_rounded,
                       color: AppColors.textSecondary,
                     ),
                   ),

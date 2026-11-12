@@ -6,46 +6,48 @@ import 'package:ntam_congress_demo/features/congress/data/congress_catalog.dart'
 import 'package:ntam_congress_demo/features/congress/domain/congress_models.dart';
 import 'package:ntam_congress_demo/features/resources/data/demo_resource_pdf.dart';
 import 'package:ntam_congress_demo/features/resources/data/resource_file_service.dart';
+import 'package:ntam_congress_demo/features/resources/data/resource_video_links.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('all document resources generate real PDF bytes', () async {
+  test('three original document resources generate real PDF bytes', () async {
     final documents = CongressCatalog.resources.where(
       (resource) => resource.kind != ResourceKind.video);
     expect(documents.length, 3);
     for (final resource in documents) {
-      final bytes = await DemoResourcePdf.build(resource);
+      final bytes = await ResourceFileService.bytes(resource);
       expect(bytes.length, greaterThan(500));
       expect(ascii.decode(bytes.take(4).toList()), '%PDF');
       expect(ResourceFileService.filename(resource), endsWith('.pdf'));
     }
   });
 
-  test('recap video is an actual playable MP4 asset', () async {
-    final resource = CongressCatalog.resources.singleWhere(
-      (item) => item.id == 'session-recap',
+  test('Stanford resource links to public YouTube course trailer', () {
+    final video = CongressCatalog.resources.singleWhere(
+      (resource) => resource.id == 'session-recap',
     );
-    final bytes = await ResourceFileService.bytes(resource);
-    // The original demo recap contains multiple moving slides, not a single frame.
-    expect(bytes.length, greaterThan(5000));
-    expect(ascii.decode(bytes.skip(4).take(4).toList()), 'ftyp');
-    expect(ResourceFileService.filename(resource), endsWith('.mp4'));
+    expect(video.kind, ResourceKind.video);
+    expect(video.title, 'Introduction to Food & Health');
+    expect(ResourceVideoLinks.forResource(video.id).toString(),
+        'https://www.youtube.com/watch?v=z7x1aaZ03xU');
+    expect(ResourceVideoLinks.forResource('programme'), isNull);
+    expect(video.availabilityLabel, contains('YouTube'));
   });
 
-  test('video resources cannot be passed to the PDF generator', () async {
+  test('third-party video is never packaged as an MP4 or PDF', () async {
     final video = CongressCatalog.resources.singleWhere(
-      (item) => item.kind == ResourceKind.video,
+      (resource) => resource.kind == ResourceKind.video,
     );
+    expect(() => ResourceFileService.filename(video), throwsUnsupportedError);
+    await expectLater(ResourceFileService.bytes(video), throwsUnsupportedError);
     await expectLater(DemoResourcePdf.build(video), throwsArgumentError);
   });
 
-  test('download resource retains a usable file name and PDF payload', () async {
-    final programme = CongressCatalog.resources.singleWhere(
+  test('download retains expected PDF file name', () {
+    final resource = CongressCatalog.resources.singleWhere(
       (resource) => resource.id == 'programme',
     );
-    expect(ResourceFileService.filename(programme), 'ntam-programme.pdf');
-    final bytes = await ResourceFileService.bytes(programme);
-    expect(ascii.decode(bytes.take(4).toList()), '%PDF');
+    expect(ResourceFileService.filename(resource), 'ntam-programme.pdf');
   });
 }

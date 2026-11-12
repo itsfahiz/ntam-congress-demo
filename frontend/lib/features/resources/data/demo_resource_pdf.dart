@@ -38,7 +38,7 @@ class DemoResourcePdf {
 
   static Future<Uint8List> build(CongressResource resource) async {
     if (resource.kind == ResourceKind.video) {
-      throw ArgumentError('Video resources are MP4 files, not PDFs.');
+      throw ArgumentError('External videos cannot be converted to a PDF.');
     }
     final doc = pw.Document(
       title: _plain(resource.title),
