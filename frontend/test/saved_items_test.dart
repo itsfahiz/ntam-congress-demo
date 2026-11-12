@@ -80,6 +80,8 @@ void main() {
     expect(find.text('Saved Items'), findsOneWidget);
     expect(find.text('Opening Ceremony'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Resources (0)'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Resources (0)'));
     await tester.pumpAndSettle();
     expect(find.text('No saved resources yet.'), findsOneWidget);
