@@ -192,7 +192,7 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
               aspectRatio: 16 / 9,
             )
           else
-          InkWell(
+            InkWell(
             key: const ValueKey('stanford-inline-video-play'),
             onTap: _watchVideo,
             borderRadius: BorderRadius.circular(20),

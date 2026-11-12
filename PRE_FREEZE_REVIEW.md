@@ -94,3 +94,5 @@ Stanford Introduction to Food & Health (official course trailer): https://www.yo
 
 ## In-app educational video follow-up
 Updated per user requirement: tapping the Stanford resource opens its existing NTAM Resource detail screen, and **Play Video** starts the official YouTube iframe player inline. No launch to the YouTube app/browser. The resource row play icon also navigates to the internal detail screen. The iframe uses youtube_player_iframe ^6.0.2, requiring Flutter >=3.38. Publisher-side embed restrictions, connectivity and Android WebView runtime must be verified on emulator. The original PDF Save/Share path and existing PostgreSQL bookmark ID remain unchanged.
+
+**Corrected user requirement:** video playback must remain inside NTAM. Library video card routes to the Resource detail screen, and the embedded iframe starts when Play Video is tapped. No external app or browser launching. The publisher may disallow embedding; this must be tested on Android. If this particular video blocks embedding, select another publisher-embeddable educational video rather than routing out of the app.

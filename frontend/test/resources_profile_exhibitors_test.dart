@@ -140,6 +140,26 @@ void main() {
     expect(find.text('PDFs'), findsNothing);
   });
 
+
+
+  testWidgets('Stanford video opens an internal detail screen with inline player action',
+      (tester) async {
+    await pumpPhoneApp(tester);
+    await signInAsDemo(tester);
+    await openFromQuickAccess(tester, 'Slides, PDFs and session files');
+
+    await tester.tap(find.text('Introduction to Food & Health'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Educational Video'), findsOneWidget);
+    expect(find.text('Introduction to Food & Health'), findsOneWidget);
+    expect(find.text('Play Video'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stanford-inline-video-play')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('stanford-embedded-youtube-player')),
+        findsNothing);
+  });
+
   testWidgets('Exhibitors opens illustrative demo booths', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);

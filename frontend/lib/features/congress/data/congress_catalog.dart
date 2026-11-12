@@ -440,7 +440,7 @@ abstract final class CongressCatalog {
             'nutrition and food choices. This is the publicly linked '
             'Stanford course trailer, not a recorded NTAM/Nestle event.\n\n'
             'Source: Stanford University / Digital Medic. '
-            'Watch Video opens the original video on YouTube. '
+            'Play Video starts the official YouTube iframe inside this app. '
             'Internet access is required.',
       ),
     ];

@@ -15,5 +15,5 @@ export const resources: ResourceRecord[] = [
     availability: 'Original assessment-demo slide deck distributed as PDF, available through the device Save/Share chooser.' },
   { id: 'session-recap', title: 'Introduction to Food & Health', kind: 'video',
     summary: 'Stanford Introduction to Food & Health course trailer, an external educational video about food and dietary habits, not footage of the mock NTAM congress. Published by Stanford University / Digital Medic. Official link: https://www.youtube.com/watch?v=z7x1aaZ03xU.',
-    availability: 'Watch Video opens YouTube; an internet connection is needed. This third-party video is not bundled or downloaded.' },
+    availability: 'Play Video streams the original Stanford YouTube video inside the NTAM app through the official embedded player. Internet access is required; the third-party video is not downloaded.' },
 ];
