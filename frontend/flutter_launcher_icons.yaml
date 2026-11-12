@@ -1,0 +1,11 @@
+# Copy to your Flutter project root. Do not overwrite project pubspec.yaml.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/branding/launcher_icon_1024.png"
+  image_path_android: "assets/branding/launcher_icon_1024.png"
+  min_sdk_android: 24
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/branding/adaptive_foreground_1024.png"
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: "assets/branding/adaptive_monochrome_1024.png"

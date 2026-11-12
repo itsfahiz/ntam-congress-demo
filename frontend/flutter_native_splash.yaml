@@ -1,0 +1,15 @@
+# Copy to your Flutter project root. This affects only generated Android splash resources.
+flutter_native_splash:
+  color: "#0D1D57"
+  color_dark: "#0D1D57"
+  image: "assets/branding/splash_logo_1024.png"
+  android: true
+  ios: false
+  web: false
+  android_12:
+    color: "#0D1D57"
+    color_dark: "#0D1D57"
+    icon_background_color: "#FFFFFF"
+    icon_background_color_dark: "#FFFFFF"
+    image: "assets/branding/splash_android12_960.png"
+    image_dark: "assets/branding/splash_android12_960.png"

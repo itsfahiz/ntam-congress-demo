@@ -5,6 +5,10 @@
         <item name="android:statusBarColor">@color/congress_navy</item>
         <item name="android:navigationBarColor">@color/congress_navy</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@color/congress_navy</item>
