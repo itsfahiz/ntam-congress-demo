@@ -67,33 +67,58 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: TextField(
-              controller: widget.controller,
-              readOnly: widget.onSearchTap != null,
-              onTap: widget.onSearchTap,
-              focusNode: _focusNode,
-              onChanged: widget.onChanged,
-              textInputAction: TextInputAction.search,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              cursorColor: AppColors.gradientEnd,
-              decoration: InputDecoration(
-                isDense: true,
-                filled: true,
-                fillColor: Colors.transparent,
-                hintText: 'Search sessions, speakers, topics...',
-                hintStyle: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.45),
-                  fontSize: 14,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
+            child: widget.onSearchTap != null
+                ? Semantics(
+                    button: true,
+                    label: 'Open congress search',
+                    child: InkWell(
+                      onTap: widget.onSearchTap,
+                      borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                      child: SizedBox(
+                        height: double.infinity,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Search sessions, speakers, topics...',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.45),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : TextField(
+                    controller: widget.controller,
+                    focusNode: _focusNode,
+                    onChanged: widget.onChanged,
+                    textInputAction: TextInputAction.search,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                    cursorColor: AppColors.gradientEnd,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      hintText: 'Search sessions, speakers, topics...',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
           ),
           if (widget.controller != null)
             ValueListenableBuilder<TextEditingValue>(

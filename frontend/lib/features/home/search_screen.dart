@@ -120,18 +120,24 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                 ]),
                 const SizedBox(height: 16),
-                Row(children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() { _day = null; _track = null; });
-                      Navigator.pop(sheet);
-                    },
-                    child: const Text('Clear filters'),
-                  ),
-                  const Spacer(),
-                  FilledButton(onPressed: () => Navigator.pop(sheet),
-                    child: const Text('Show results')),
-                ]),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() { _day = null; _track = null; });
+                        Navigator.pop(sheet);
+                      },
+                      child: const Text('Clear filters'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(sheet),
+                      child: const Text('Show results'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

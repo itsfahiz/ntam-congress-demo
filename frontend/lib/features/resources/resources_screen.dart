@@ -500,12 +500,16 @@ class _ResourceCard extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          _resourceLabel,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                        Expanded(
+                          child: Text(
+                            _resourceLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                         ),
                       ],
