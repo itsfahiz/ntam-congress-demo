@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ntam_congress_demo/app/congress_app.dart';
 import 'package:ntam_congress_demo/features/saved/data/mock_saved_items_repository.dart';
+import 'package:ntam_congress_demo/features/profile/profile_screen.dart';
 import 'package:ntam_congress_demo/features/saved/state/saved_items_controller.dart';
 
 import 'support/home_shortcuts.dart';
@@ -55,6 +56,18 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('My Profile'), findsOneWidget);
+    // The stat row is below the contact card on a phone-sized screen.
+    // Sliver children outside the viewport are not built until scrolled in.
+    await tester.scrollUntilVisible(
+      find.text('Saved'),
+      150,
+      scrollable: find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(Scrollable),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('01'), findsOneWidget);
 
