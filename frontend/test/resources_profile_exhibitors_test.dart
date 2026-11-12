@@ -83,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Resources search and demo summary open locally', (tester) async {
+  testWidgets('Resources search filters the actual demo media catalogue', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
@@ -99,11 +99,8 @@ void main() {
     expect(find.text('Congress Scientific Programme'), findsNothing);
     expect(find.text('Keynote Presentation Slides'), findsNothing);
 
-    await tester.tap(find.text('Pediatric Nutrition Guide'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('On-device summary'), findsOneWidget);
-    expect(find.textContaining('Dr. Sarah Johnson'), findsOneWidget);
+    expect(find.text('Pediatric Nutrition Guide'), findsOneWidget);
+    expect(find.byTooltip('Download'), findsOneWidget);
   });
 
   testWidgets('Resources folder icon browses existing catalog groups', (
@@ -131,7 +128,7 @@ void main() {
     expect(find.text('Congress Scientific Programme'), findsOneWidget);
     expect(find.text('Pediatric Nutrition Guide'), findsOneWidget);
     expect(find.text('Keynote Presentation Slides'), findsNothing);
-    expect(find.text('Day 1 Session Recap'), findsNothing);
+    expect(find.text('Introduction to Food & Health'), findsNothing);
 
     await tester.tap(find.byTooltip('Browse folders'));
     await tester.pumpAndSettle();
@@ -141,6 +138,26 @@ void main() {
     expect(find.text('Congress Scientific Programme'), findsOneWidget);
     expect(find.text('Keynote Presentation Slides'), findsOneWidget);
     expect(find.text('PDFs'), findsNothing);
+  });
+
+
+
+  testWidgets('Stanford video opens an internal detail screen with inline player action',
+      (tester) async {
+    await pumpPhoneApp(tester);
+    await signInAsDemo(tester);
+    await openFromQuickAccess(tester, 'Slides, PDFs and session files');
+
+    await tester.tap(find.text('Introduction to Food & Health'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Educational Video'), findsOneWidget);
+    expect(find.text('Introduction to Food & Health'), findsOneWidget);
+    expect(find.text('Play Video'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stanford-inline-video-play')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('stanford-embedded-youtube-player')),
+        findsNothing);
   });
 
   testWidgets('Exhibitors opens illustrative demo booths', (tester) async {

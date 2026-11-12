@@ -407,7 +407,7 @@ abstract final class CongressCatalog {
       CongressResource(
         id: 'pediatric-guide',
         title: 'Pediatric Nutrition Guide',
-        subtitle: 'Clinical reference material',
+        subtitle: 'Illustrative discussion prompts (demo PDF)',
         kind: ResourceKind.pdf,
         body:
             'Tied to Future of Pediatric Nutrition with ${speakerById(sarahId).fullName}.\n\n'
@@ -430,14 +430,18 @@ abstract final class CongressCatalog {
             '4. Closing Keynote — programme recap',
       ),
       CongressResource(
+        // Preserve stable ID so saved PostgreSQL bookmarks continue working.
         id: 'session-recap',
-        title: 'Day 1 Session Recap',
-        subtitle: 'Session highlights',
+        title: 'Introduction to Food & Health',
+        subtitle: 'Stanford University · Course trailer (YouTube)',
         kind: ResourceKind.video,
         body:
-            'No video file is included.\n\n'
-            'Day 1 outline:\n'
-            '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}',
+            'Stanford Introduction to Food & Health introduces practical '
+            'nutrition and food choices. This is the publicly linked '
+            'Stanford course trailer, not a recorded NTAM/Nestle event.\n\n'
+            'Source: Stanford University / Digital Medic. '
+            'Play Video starts the official YouTube iframe inside this app. '
+            'Internet access is required.',
       ),
     ];
   }

@@ -13,7 +13,9 @@ import 'widgets/speaker_card.dart';
 import 'widgets/speaker_detail_sheet.dart';
 
 class SpeakersScreen extends StatefulWidget {
-  const SpeakersScreen({super.key});
+  const SpeakersScreen({super.key, this.initialSpeakerId});
+
+  final String? initialSpeakerId;
 
   @override
   State<SpeakersScreen> createState() => _SpeakersScreenState();
@@ -23,6 +25,20 @@ class _SpeakersScreenState extends State<SpeakersScreen> {
   final _searchController = TextEditingController();
   SpeakerFocus? _focus;
   var _favoritesOnly = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final targetId = widget.initialSpeakerId;
+    if (targetId == null) return;
+    for (final speaker in CongressCatalog.listedSpeakers) {
+      if (speaker.id != targetId) continue;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showSpeakerDetailSheet(context, speaker: speaker);
+      });
+      break;
+    }
+  }
 
   @override
   void dispose() {

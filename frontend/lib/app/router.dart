@@ -10,11 +10,14 @@ import '../features/auth/splash/auth_splash_screen.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/exhibitors/exhibitors_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/home/search_screen.dart';
+import '../features/home/notifications_screen.dart';
 import '../features/name_tag/name_tag_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/qa/qa_screen.dart';
 import '../features/quick_access/quick_access_screen.dart';
 import '../features/resources/resources_screen.dart';
+import '../features/resources/resource_viewer_screen.dart';
 import '../features/saved/saved_items_screen.dart';
 import '../features/speakers/speakers_screen.dart';
 import '../features/venue/venue_screen.dart';
@@ -99,6 +102,18 @@ GoRouter createRouter(AuthController authController) {
         ],
       ),
       GoRoute(
+        path: AppRoutes.search,
+        name: 'search',
+        builder: (context, state) => SearchScreen(
+          openFiltersOnStart: state.uri.queryParameters['filters'] == '1',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.quickAccess,
         name: 'quickAccess',
         builder: (context, state) => const QuickAccessScreen(),
@@ -106,12 +121,16 @@ GoRouter createRouter(AuthController authController) {
       GoRoute(
         path: AppRoutes.agenda,
         name: 'agenda',
-        builder: (context, state) => const AgendaScreen(),
+        builder: (context, state) => AgendaScreen(
+          initialSessionId: state.uri.queryParameters['session'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.speakers,
         name: 'speakers',
-        builder: (context, state) => const SpeakersScreen(),
+        builder: (context, state) => SpeakersScreen(
+          initialSpeakerId: state.uri.queryParameters['speaker'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.nameTag,
@@ -137,6 +156,13 @@ GoRouter createRouter(AuthController authController) {
         path: AppRoutes.resources,
         name: 'resources',
         builder: (context, state) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resourceViewer,
+        name: 'resourceViewer',
+        builder: (context, state) => ResourceViewerScreen(
+          resourceId: state.pathParameters['id'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.saved,

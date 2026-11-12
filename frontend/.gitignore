@@ -19,6 +19,7 @@ app.*.map.json
 /android/app/release
 
 # Local secrets and credentials
+config.local.json
 .env
 .env.*
 !.env.example

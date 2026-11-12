@@ -208,7 +208,7 @@ test('catalogue evidence includes the source id and resource availability', asyn
   assert.equal(r.status, 200);
   assert.ok(r.body.sources?.some((s) =>
     s.type === 'resource' && s.id === 'pediatric-guide'));
-  assert.match(r.body.answer ?? '', /no downloadable PDF/i);
+  assert.match(r.body.answer ?? '', /save\/share/i);
 });
 
 test('Q&A and polls use live tools with the authenticated user', async () => {

@@ -13,6 +13,7 @@ Future<void> showSpeakerDetailSheet(
   required CongressSpeaker speaker,
 }) {
   final sessions = CongressCatalog.sessionsForSpeaker(speaker.id);
+  final parentContext = context;
 
   return showModalBottomSheet<void>(
     context: context,
@@ -100,7 +101,7 @@ Future<void> showSpeakerDetailSheet(
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () {
                         Navigator.pop(context);
-                        context.push(AppRoutes.agenda);
+                        parentContext.push('${AppRoutes.agenda}?session=${session.id}');
                       },
                     ),
                 ],

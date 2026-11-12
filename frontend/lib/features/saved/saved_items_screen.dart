@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../agenda/widgets/session_detail_sheet.dart';
 import '../congress/data/congress_catalog.dart';
-import '../congress/domain/congress_models.dart';
 import '../speakers/widgets/speaker_detail_sheet.dart';
+import '../../app/app_routes.dart';
 import 'state/saved_items_controller.dart';
 
 class SavedItemsScreen extends StatefulWidget {
@@ -28,42 +27,6 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
         SnackBar(content: Text(error.toString())),
       );
     }
-  }
-
-  void _showResource(CongressResource resource) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(resource.kindLabel,
-                    style: const TextStyle(
-                      color: AppColors.categoryInk,
-                      fontWeight: FontWeight.w800,
-                    )),
-                const SizedBox(height: 8),
-                Text(resource.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    )),
-                const SizedBox(height: 8),
-                Text(resource.availabilityLabel),
-                const SizedBox(height: 14),
-                Text(resource.body),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -173,7 +136,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                                   leading: const Icon(Icons.description_outlined),
                                   title: Text(resource.title),
                                   subtitle: Text(resource.availabilityLabel),
-                                  onTap: () => _showResource(resource),
+                                  onTap: () => context.push('${AppRoutes.resources}/view/${resource.id}'),
                                   trailing: IconButton(
                                     tooltip: 'Remove saved resource',
                                     icon: const Icon(Icons.bookmark_remove_outlined),

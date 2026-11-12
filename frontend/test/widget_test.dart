@@ -53,8 +53,8 @@ void main() {
     expect(find.textContaining('Huda Latheef'), findsOneWidget);
     expect(find.text('Quick Access'), findsOneWidget);
 
-    await reveal(tester, find.text('Upcoming Sessions'));
-    expect(find.text('Upcoming Sessions'), findsOneWidget);
+    await reveal(tester, find.text('Day 1 Programme'));
+    expect(find.text('Day 1 Programme'), findsOneWidget);
   });
 
   testWidgets('Unknown email shows a mock auth error', (tester) async {

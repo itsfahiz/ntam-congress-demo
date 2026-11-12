@@ -39,7 +39,7 @@ class FeaturedEventCard extends StatelessWidget {
                   border: Border.all(color: AppColors.gold, width: 1.2),
                 ),
                 child: const Text(
-                  'FEATURED EVENT',
+                  'DEMO EVENT',
                   style: TextStyle(
                     color: AppColors.gold,
                     fontSize: 10,

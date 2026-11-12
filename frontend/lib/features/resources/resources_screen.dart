@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/app_routes.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_filter_chips.dart';
 import '../../core/widgets/congress_hero_banner.dart';
 import '../../core/widgets/light_search_field.dart';
-import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
 import '../saved/state/saved_items_controller.dart';
+import 'data/resource_file_service.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -51,63 +52,19 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   }
 
   void _openResource(CongressResource resource) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.card,
-      showDragHandle: true,
-      builder: (context) {
-        return LightSheet(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      resource.kindLabel,
-                      style: const TextStyle(
-                        color: AppColors.categoryInk,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      resource.title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      resource.availabilityLabel,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      resource.body,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    context.push('${AppRoutes.resources}/view/${resource.id}');
+  }
+
+  Future<void> _download(CongressResource resource) async {
+    try {
+      // One consistent file action: Android's Share/Save-to-Files chooser.
+      await ResourceFileService.export(resource);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Save/Share. Please try again.')),
+      );
+    }
   }
 
   @override
@@ -145,7 +102,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
       hero: const CongressHeroBanner(
         icon: Icons.cloud_download_rounded,
         title: 'Congress Library',
-        subtitle: 'Access presentations, documents and media files',
+        subtitle: 'Documents and educational videos',
         padding: EdgeInsets.fromLTRB(18, 22, 18, 22),
         titleSize: 22,
         titleWeight: FontWeight.w900,
@@ -250,6 +207,9 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                         resource: resource,
                         saved: saved.isSaved('resource', resource.id),
                         onOpen: () => _openResource(resource),
+                        onDownload: () => resource.kind == ResourceKind.video
+                            ? _openResource(resource)
+                            : _download(resource),
                         onSave: () => _toggleSaved(resource.id),
                       );
                     },
@@ -404,7 +364,7 @@ class _FolderTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '$count on-device ${count == 1 ? 'summary' : 'summaries'}',
+                '$count demo ${count == 1 ? 'file' : 'files'}',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -425,21 +385,21 @@ class _ResourceCard extends StatelessWidget {
     required this.resource,
     required this.saved,
     required this.onOpen,
+    required this.onDownload,
     required this.onSave,
   });
 
   final CongressResource resource;
   final bool saved;
   final VoidCallback onOpen;
+  final VoidCallback onDownload;
   final VoidCallback onSave;
 
-  String get _referenceSizeLabel => switch (resource.id) {
-    'programme' => '4.2 MB',
-    'pediatric-guide' => '2.8 MB',
-    'keynote-slides' => '8.6 MB',
-    'session-recap' => '45 min',
-    _ => '',
-  };
+  String get _resourceLabel => resource.kind == ResourceKind.video
+      ? 'Stanford University · YouTube'
+      : resource.kind == ResourceKind.slides
+          ? 'Demo slides · PDF'
+          : 'Original demo · PDF';
 
   @override
   Widget build(BuildContext context) {
@@ -540,12 +500,16 @@ class _ResourceCard extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          _referenceSizeLabel,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                        Expanded(
+                          child: Text(
+                            _resourceLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                         ),
                       ],
@@ -572,16 +536,20 @@ class _ResourceCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Open',
+                    tooltip: resource.kind == ResourceKind.video
+                        ? 'Play video in app'
+                        : 'Download',
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 36,
                       minHeight: 36,
                     ),
-                    onPressed: onOpen,
-                    icon: const Icon(
-                      Icons.download_rounded,
+                    onPressed: onDownload,
+                    icon: Icon(
+                      resource.kind == ResourceKind.video
+                          ? Icons.play_circle_outline_rounded
+                          : Icons.download_rounded,
                       color: AppColors.textSecondary,
                     ),
                   ),
