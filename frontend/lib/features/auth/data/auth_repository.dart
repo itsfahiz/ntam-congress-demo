@@ -1,9 +1,10 @@
 import '../domain/attendee.dart';
 
 class AuthException implements Exception {
-  const AuthException(this.message);
+  const AuthException(this.message, {this.statusCode});
 
   final String message;
+  final int? statusCode;
 
   @override
   String toString() => message;
@@ -42,6 +43,12 @@ abstract interface class AuthRepository {
   Future<Attendee> signIn({required String email, required String password});
 
   Future<Attendee> register(RegistrationDraft draft);
+
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  });
 
   Future<void> signOut();
 }

@@ -30,7 +30,13 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Attendee?> restoreSession() async {
     final session = _auth.currentSession;
     if (session == null) return null;
-    return _attendeeFromSession(session.user, fallbackName: 'Attendee');
+    try {
+      final json = await _api('GET', '/api/me', token: session.accessToken);
+      return _attendeeFromProfile(json, session.user);
+    } on AuthException {
+      // Never overwrite existing PostgreSQL data during session restore.
+      return _attendeeFromSession(session.user, fallbackName: 'Attendee');
+    }
   }
 
   @override
@@ -50,11 +56,7 @@ class SupabaseAuthRepository implements AuthRepository {
           'Check your email to confirm the account before signing in.',
         );
       }
-      return _syncProfile(
-        session,
-        fullName: _metaName(user),
-        organization: _metaOrg(user),
-      );
+      return _loadOrCreateProfile(session);
     } on AuthException {
       rethrow;
     } on supabase.AuthException catch (error) {
@@ -89,8 +91,7 @@ class SupabaseAuthRepository implements AuthRepository {
           email: user.email ?? draft.email.trim().toLowerCase(),
         );
       }
-      return _syncProfile(
-        session,
+      return _createProfile(session,
         fullName: draft.fullName.trim(),
         organization: draft.organization.trim(),
       );
@@ -112,7 +113,50 @@ class SupabaseAuthRepository implements AuthRepository {
     return _auth.signOut();
   }
 
-  Future<Attendee> _syncProfile(
+  @override
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) async {
+    final session = _auth.currentSession;
+    if (session == null) {
+      throw const AuthException('Sign in to edit your profile.');
+    }
+    final json = await _api(
+      'POST',
+      '/api/me',
+      token: session.accessToken,
+      body: {
+        'fullName': fullName.trim(),
+        'organization': organization.trim(),
+        'phone': phone.trim(),
+      },
+    );
+    return _attendeeFromProfile(json, session.user);
+  }
+
+  Future<Attendee> _loadOrCreateProfile(supabase.Session session) async {
+    try {
+      final json = await _api('GET', '/api/me', token: session.accessToken);
+      return _attendeeFromProfile(json, session.user);
+    } on AuthException catch (error) {
+      if (error.statusCode == 404) {
+        return _createProfile(
+          session,
+          fullName: _metaName(session.user),
+          organization: _metaOrg(session.user),
+        );
+      }
+      // Existing session stays usable on temporary profile API failure.
+      return _attendeeFromSession(
+        session.user,
+        fallbackName: 'Attendee',
+      );
+    }
+  }
+
+  Future<Attendee> _createProfile(
     supabase.Session session, {
     required String fullName,
     required String organization,
@@ -148,7 +192,9 @@ class SupabaseAuthRepository implements AuthRepository {
       email: (map['email'] as String?) ?? user.email ?? '',
       role: 'Medical Congress Attendee',
       organization: (map['organization'] as String?) ?? _metaOrg(user),
-      phone: 'Not provided',
+      phone: ((map['phone'] as String?) ?? '').isEmpty
+          ? 'Not provided'
+          : map['phone'] as String,
       location: 'Dubai, UAE',
     );
   }
@@ -242,6 +288,7 @@ class SupabaseAuthRepository implements AuthRepository {
       throw AuthException(
         (json['error'] as String?) ??
             'Unable to load the attendee profile. Try again.',
+        statusCode: response.statusCode,
       );
     } on TimeoutException {
       throw const AuthException(

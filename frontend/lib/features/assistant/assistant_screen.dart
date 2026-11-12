@@ -6,10 +6,8 @@ import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_text_field.dart';
 import '../agenda/widgets/session_detail_sheet.dart';
-import '../auth/state/auth_controller.dart';
 import '../speakers/widgets/speaker_detail_sheet.dart';
 import 'assistant_answer_text.dart';
-import 'assistant_local.dart';
 import 'catalog_lookup.dart';
 import 'data/assistant_models.dart';
 import 'data/assistant_repository.dart';
@@ -61,16 +59,6 @@ class _AssistantScreenState extends State<AssistantScreen> {
       );
     });
     _scrollToEnd();
-
-    final local = localAssistantReply(
-      question,
-      AuthScope.maybeOf(context)?.attendee,
-    );
-    if (local != null) {
-      if (!mounted) return;
-      _replace(id, ChatMessage(id: id, question: question, reply: local));
-      return;
-    }
 
     try {
       final reply = await _repository.ask(question);
@@ -140,6 +128,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
       final speaker = catalogSpeaker(source.id);
       if (speaker == null) return;
       await showSpeakerDetailSheet(context, speaker: speaker);
+      return;
+    }
+    if (source.isResource && catalogResource(source.id) != null) {
+      context.push(AppRoutes.resources);
       return;
     }
     if (source.isDay && (source.id == 'day1' || source.id == 'day2')) {
@@ -277,7 +269,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Answers come from the on-device programme catalog via the NTAM API. No medical advice.',
+          'Gemini can check the congress catalogue and your authenticated attendee records using secure read-only tools. No medical advice.',
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,

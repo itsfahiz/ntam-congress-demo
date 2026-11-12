@@ -15,6 +15,7 @@ const SESSION_IDS = new Set([
 ]);
 const SPEAKER_IDS = new Set(['sarah', 'hassan', 'ahmed', 'committee']);
 const DAY_IDS = new Set(['day1', 'day2']);
+const RESOURCE_IDS = new Set(['programme', 'pediatric-guide', 'keynote-slides', 'session-recap']);
 
 function assertKnownSource(record: RetrievalRecord) {
   const sourceType = record.type;
@@ -28,6 +29,10 @@ function assertKnownSource(record: RetrievalRecord) {
   }
   if (sourceType === 'day') {
     assert.ok(DAY_IDS.has(record.id), `unknown day id ${record.id}`);
+    return;
+  }
+  if (sourceType === 'resource') {
+    assert.ok(RESOURCE_IDS.has(record.id), `unknown resource id ${record.id}`);
     return;
   }
   const unexpected: never = sourceType;
@@ -96,4 +101,12 @@ test('retrieve returns nothing when the catalog has no match', () => {
     'What time does the airport hotel shuttle leave for Terminal 3?',
   );
   assert.deepEqual(records, []);
+});
+
+test('retrieval finds grounded resources and actual preview-only availability', () => {
+  const records = retrieve('What is in the Pediatric Nutrition Guide PDF?');
+  const resource = records.find((record) =>
+    record.type === 'resource' && record.id === 'pediatric-guide');
+  assert.ok(resource && resource.type === 'resource');
+  assert.match(resource.payload.availability, /no downloadable PDF/i);
 });

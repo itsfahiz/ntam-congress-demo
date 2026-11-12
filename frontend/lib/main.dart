@@ -13,6 +13,8 @@ import 'features/name_tag/data/http_badge_qr_repository.dart';
 import 'features/name_tag/data/mock_badge_qr_repository.dart';
 import 'features/qa/data/http_questions_repository.dart';
 import 'features/qa/data/mock_questions_repository.dart';
+import 'features/saved/data/http_saved_items_repository.dart';
+import 'features/saved/data/mock_saved_items_repository.dart';
 import 'features/voting/data/http_polls_repository.dart';
 import 'features/voting/data/mock_polls_repository.dart';
 
@@ -43,6 +45,11 @@ Future<void> main() async {
               badgeIdProvider: () => authController.attendee?.id ?? '',
             )
           : HttpBadgeQrRepository(
+              tokenProvider: () => authController.accessToken ?? '',
+            ),
+      savedItemsRepository: authRepository is UnconfiguredAuthRepository
+          ? MockSavedItemsRepository()
+          : HttpSavedItemsRepository(
               tokenProvider: () => authController.accessToken ?? '',
             ),
       pollsRepository: authRepository is UnconfiguredAuthRepository

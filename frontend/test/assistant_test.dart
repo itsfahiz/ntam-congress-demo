@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ntam_congress_demo/app/app_routes.dart';
 import 'package:ntam_congress_demo/app/theme/app_theme.dart';
 import 'package:ntam_congress_demo/features/assistant/assistant_answer_text.dart';
-import 'package:ntam_congress_demo/features/assistant/assistant_local.dart';
 import 'package:ntam_congress_demo/features/assistant/assistant_screen.dart';
 import 'package:ntam_congress_demo/features/assistant/catalog_lookup.dart';
 import 'package:ntam_congress_demo/features/assistant/data/assistant_models.dart';
 import 'package:ntam_congress_demo/features/assistant/data/assistant_repository.dart';
 import 'package:ntam_congress_demo/features/assistant/data/http_assistant_repository.dart';
-import 'package:ntam_congress_demo/features/auth/data/mock_auth_repository.dart';
-import 'package:ntam_congress_demo/features/auth/domain/attendee.dart';
-import 'package:ntam_congress_demo/features/auth/state/auth_controller.dart';
 
 class _FakeAssistantRepository implements AssistantRepository {
   _FakeAssistantRepository(this._onAsk);
@@ -254,152 +249,52 @@ void main() {
     expect(hasBold(answer.text, 'Speaker:'), isTrue);
   });
 
-  test('local assistant answers name and email from the signed-in profile', () {
-    const attendee = MockAuthRepository.demoAttendee;
-    final name = localAssistantReply("What's my name?", attendee);
-    expect(name, isNotNull);
-    expect(name!.answer, contains('Huda Latheef'));
-    expect(name.sources, isEmpty);
-
-    final email = localAssistantReply("What's my email?", attendee);
-    expect(email!.answer, contains('huda@example.com'));
-
-    final both = localAssistantReply("What's my name/email?", attendee);
-    expect(both!.answer, contains('Huda Latheef'));
-    expect(both.answer, contains('huda@example.com'));
+  test('authenticated assistant request forwards Supabase bearer token', () async {
+    final repository = HttpAssistantRepository(
+      tokenProvider: () => 'test-access-token',
+      post: ({
+        required uri,
+        required headers,
+        required body,
+        required timeout,
+      }) async {
+        expect(uri.path, '/api/assistant/ask');
+        expect(headers['Authorization'], 'Bearer test-access-token');
+        expect(body, contains('mobile number'));
+        return const AssistantHttpResponse(
+          statusCode: 200,
+          body: '{"answer":"Your saved phone is +971 50 123 4567.","grounded":true,"sources":[]}',
+        );
+      },
+    );
+    final reply = await repository.ask('What is my mobile number?');
+    expect(reply.answer, contains('+971 50 123 4567'));
+    expect(reply.grounded, true);
   });
 
-  test('local assistant shows issued badge ID and View My Badge', () {
-    final reply = localAssistantReply(
-      "What's my attendee ID?",
-      MockAuthRepository.demoAttendee,
-    );
-    expect(reply!.answer, contains('NMC-2026-001'));
-    expect(reply.actions.single.route, AppRoutes.nameTag);
-    expect(reply.actions.single.label, 'View My Badge');
-
-    final qr = localAssistantReply(
-      'Show my QR',
-      MockAuthRepository.demoAttendee,
-    );
-    expect(qr!.actions.single.label, 'View My Badge');
-
-    const noId = Attendee(
-      id: '',
-      fullName: 'Guest',
-      email: 'guest@example.com',
-      role: 'Medical Congress Attendee',
-      organization: 'NTAM',
-      phone: 'Not provided',
-      location: 'Dubai, UAE',
-    );
-    final ticket = localAssistantReply('Where is my ticket?', noId);
-    expect(ticket!.answer.contains('NMC-'), isFalse);
-    expect(ticket.actions.single.route, AppRoutes.nameTag);
-  });
-
-  test('local assistant does not invent a phone number for my number', () {
-    final reply = localAssistantReply(
-      "What's my number?",
-      MockAuthRepository.demoAttendee,
-    );
-    expect(reply!.answer.toLowerCase(), isNot(contains('+971')));
-    expect(reply.answer, contains('NMC-2026-001'));
-    expect(reply.answer.toLowerCase(), contains('phone number is not stored'));
-  });
-
-  test('local assistant offers agenda, badge and venue actions', () {
-    const attendee = MockAuthRepository.demoAttendee;
-    final attend = localAssistantReply('How do I attend?', attendee);
-    expect(attend!.actions.map((action) => action.label).toList(), [
-      'View Agenda',
-      'View My Badge',
-      'Venue/Directions',
-    ]);
-
-    final schedule = localAssistantReply('Show my schedule', attendee);
-    expect(schedule!.actions.single.route, AppRoutes.agenda);
-
-    final venue = localAssistantReply('Where is the venue?', attendee);
-    expect(venue!.actions.single.route, AppRoutes.venue);
-  });
-
-  test('local assistant leaves catalog questions for Gemini', () {
-    const attendee = MockAuthRepository.demoAttendee;
-    expect(
-      localAssistantReply(
-        'Tell me about the pediatric nutrition session and its speaker.',
-        attendee,
-      ),
-      isNull,
-    );
-    expect(
-      localAssistantReply(
-        'Where is the venue and what facilities are listed?',
-        attendee,
-      ),
-      isNull,
-    );
-  });
-
-  testWidgets('Congress AI View My Badge opens the Name Tag route', (
-    tester,
-  ) async {
+  testWidgets('personal questions reach the backend AI instead of local canned answers', (tester) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-
-    final auth = AuthController(MockAuthRepository());
-    addTearDown(auth.dispose);
-    final repository = _FakeAssistantRepository(
-      (_) async =>
-          throw StateError('Gemini should not run for badge questions'),
-    );
-
-    await tester.pumpWidget(
-      AuthScope(
-        controller: auth,
-        child: MaterialApp.router(
-          theme: AppTheme.congress(),
-          routerConfig: GoRouter(
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (context, state) =>
-                    AssistantScreen(repository: repository),
-              ),
-              GoRoute(
-                path: AppRoutes.nameTag,
-                builder: (context, state) =>
-                    const Scaffold(body: Text('Name Tag screen')),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.runAsync(() async {
-      await auth.signIn(
-        email: MockAuthRepository.demoAttendee.email,
-        password: MockAuthRepository.demoPassword,
+    final repository = _FakeAssistantRepository((question) async {
+      expect(question, 'my mobile number?');
+      return const AssistantReply(
+        answer: 'Your phone number is from your saved attendee profile.',
+        grounded: true,
+        sources: [],
       );
     });
+    await tester.pumpWidget(_assistantApp(repository));
     await tester.pumpAndSettle();
-    await tester.pumpAndSettle();
-
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Ask about the programme'),
-      'Show my QR',
+      'my mobile number?',
     );
     await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
-
-    expect(repository.questions, isEmpty);
-    expect(find.text('View My Badge'), findsOneWidget);
-    await tester.tap(find.text('View My Badge'));
-    await tester.pumpAndSettle();
-    expect(find.text('Name Tag screen'), findsOneWidget);
+    expect(repository.questions, ['my mobile number?']);
+    expect(find.textContaining('Your phone number is from'), findsOneWidget);
+    expect(find.textContaining('not stored on this attendee'), findsNothing);
   });
 
   testWidgets('Congress AI error state offers retry', (tester) async {

@@ -22,5 +22,14 @@ class UnconfiguredAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) {
+    throw const AuthException(_message);
+  }
+
+  @override
   Future<void> signOut() async {}
 }

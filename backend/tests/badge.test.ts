@@ -73,6 +73,7 @@ test('issueBadge returns a stable HTTPS verification URL for the profile badge',
     userId: '11111111-2222-3333-4444-555555555555',
     fullName: 'Huda Latheef',
     organization: 'NTAM',
+    phone: '',
     badgeId: BADGE_ID,
     email: 'huda@example.com',
   }));

@@ -188,6 +188,15 @@ class _PendingConfirmAuthRepository implements AuthRepository {
   Future<void> signOut() async {}
 
   @override
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) async {
+    throw const AuthException('Profile editing is not used in this test.');
+  }
+
+  @override
   Future<Attendee> signIn({
     required String email,
     required String password,

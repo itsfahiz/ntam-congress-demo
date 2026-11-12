@@ -8,6 +8,7 @@ import { healthRouter } from './routes/health.js';
 import { meRouter } from './routes/me.js';
 import { pollsRouter } from './routes/polls.js';
 import { questionsRouter } from './routes/questions.js';
+import { savedRouter } from './routes/saved.js';
 
 export function createApp() {
   const app = express();
@@ -42,6 +43,7 @@ export function createApp() {
   app.use('/api', meRouter);
   app.use('/api', pollsRouter);
   app.use('/api', questionsRouter);
+  app.use('/api', savedRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

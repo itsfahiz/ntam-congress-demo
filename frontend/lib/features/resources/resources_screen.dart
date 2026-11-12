@@ -9,6 +9,7 @@ import '../../core/widgets/light_search_field.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
+import '../saved/state/saved_items_controller.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -19,7 +20,6 @@ class ResourcesScreen extends StatefulWidget {
 
 class _ResourcesScreenState extends State<ResourcesScreen> {
   final _searchController = TextEditingController();
-  final _savedIds = <String>{};
   ResourceKind? _kind;
   var _savedOnly = false;
   var _folderBrowse = false;
@@ -30,11 +30,22 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     super.dispose();
   }
 
+  Future<void> _toggleSaved(String id) async {
+    try {
+      await SavedItemsScope.of(context).toggle('resource', id);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
   List<CongressResource> get _visible {
     return CongressCatalog.filterResources(
       kind: _kind,
       query: _searchController.text,
-      savedIds: _savedIds,
+      savedIds: SavedItemsScope.of(context).idsFor('resource'),
       savedOnly: _savedOnly,
     );
   }
@@ -102,6 +113,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   @override
   Widget build(BuildContext context) {
     final resources = _visible;
+    final saved = SavedItemsScope.of(context);
 
     return CongressFeatureScaffold(
       title: 'Resources',
@@ -206,7 +218,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                     ).length,
                     savedCount: CongressCatalog.filterResources(
                       query: _searchController.text,
-                      savedIds: _savedIds,
+                      savedIds: saved.idsFor('resource'),
                       savedOnly: true,
                     ).length,
                     onOpen: (kind, savedOnly) => setState(() {
@@ -236,13 +248,9 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                       final resource = resources[index];
                       return _ResourceCard(
                         resource: resource,
-                        saved: _savedIds.contains(resource.id),
+                        saved: saved.isSaved('resource', resource.id),
                         onOpen: () => _openResource(resource),
-                        onSave: () => setState(() {
-                          if (!_savedIds.add(resource.id)) {
-                            _savedIds.remove(resource.id);
-                          }
-                        }),
+                        onSave: () => _toggleSaved(resource.id),
                       );
                     },
                   ),

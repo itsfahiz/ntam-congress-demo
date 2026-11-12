@@ -27,11 +27,13 @@ class HttpAssistantRepository implements AssistantRepository {
   HttpAssistantRepository({
     String? baseUrl,
     AssistantHttpPost? post,
+    this.tokenProvider,
     this.timeout = const Duration(seconds: 50),
   }) : baseUrl = _trimBase(baseUrl ?? ApiConfig.baseUrl),
        _post = post ?? postWithHttpClient;
 
   final String baseUrl;
+  final String Function()? tokenProvider;
   final AssistantHttpPost _post;
   final Duration timeout;
 
@@ -88,11 +90,13 @@ class HttpAssistantRepository implements AssistantRepository {
 
     late final AssistantHttpResponse response;
     try {
+      final token = tokenProvider?.call() ?? '';
       response = await _post(
         uri: Uri.parse('$baseUrl/api/assistant/ask'),
-        headers: const {
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
         body: jsonEncode({'question': trimmed}),
         timeout: timeout,
@@ -166,6 +170,9 @@ class HttpAssistantRepository implements AssistantRepository {
     }
     if (status == 400) {
       return 'Ask a short congress question (2–500 characters).';
+    }
+    if (status == 401) {
+      return 'Sign in again to ask Congress AI.';
     }
     if (serverMessage != null &&
         serverMessage.isNotEmpty &&

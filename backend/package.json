@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/src/index.js",
-    "test": "tsx --test tests/api.test.ts tests/assistant.test.ts tests/retrieval.test.ts tests/questions.test.ts tests/badge.test.ts tests/polls.test.ts"
+    "test": "tsx --test tests/api.test.ts tests/assistant.test.ts tests/retrieval.test.ts tests/questions.test.ts tests/badge.test.ts tests/polls.test.ts tests/saved.test.ts tests/profile.test.ts"
   },
   "dependencies": {
     "@google/genai": "^3.1.0",

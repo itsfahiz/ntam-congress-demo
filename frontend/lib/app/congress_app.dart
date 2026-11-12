@@ -12,6 +12,9 @@ import '../features/qa/data/mock_questions_repository.dart';
 import '../features/qa/data/questions_repository.dart';
 import '../features/voting/data/mock_polls_repository.dart';
 import '../features/voting/data/polls_repository.dart';
+import '../features/saved/data/mock_saved_items_repository.dart';
+import '../features/saved/data/saved_items_repository.dart';
+import '../features/saved/state/saved_items_controller.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +26,7 @@ class CongressApp extends StatefulWidget {
     this.questionsRepository,
     this.badgeQrRepository,
     this.pollsRepository,
+    this.savedItemsRepository,
   });
 
   final AuthController? authController;
@@ -30,6 +34,7 @@ class CongressApp extends StatefulWidget {
   final QuestionsRepository? questionsRepository;
   final BadgeQrRepository? badgeQrRepository;
   final PollsRepository? pollsRepository;
+  final SavedItemsRepository? savedItemsRepository;
 
   @override
   State<CongressApp> createState() => _CongressAppState();
@@ -42,6 +47,7 @@ class _CongressAppState extends State<CongressApp> {
   late final BadgeQrRepository _badgeQrRepository;
   late final PollsRepository _pollsRepository;
   late final bool _ownsAuthController;
+  late final SavedItemsController _savedController;
   late final GoRouter _router;
 
   @override
@@ -51,7 +57,9 @@ class _CongressAppState extends State<CongressApp> {
     _authController =
         widget.authController ?? AuthController(MockAuthRepository());
     _assistantRepository =
-        widget.assistantRepository ?? HttpAssistantRepository();
+        widget.assistantRepository ?? HttpAssistantRepository(
+          tokenProvider: () => _authController.accessToken ?? '',
+        );
     _questionsRepository =
         widget.questionsRepository ?? MockQuestionsRepository();
     _badgeQrRepository =
@@ -60,11 +68,23 @@ class _CongressAppState extends State<CongressApp> {
           badgeIdProvider: () => _authController.attendee?.id ?? '',
         );
     _pollsRepository = widget.pollsRepository ?? MockPollsRepository();
+    _savedController = SavedItemsController(
+      widget.savedItemsRepository ?? MockSavedItemsRepository(),
+    );
+    _authController.addListener(_handleAccountChange);
+    _handleAccountChange();
     _router = createRouter(_authController);
+  }
+
+  void _handleAccountChange() {
+    final account = _authController.attendee?.email;
+    _savedController.loadFor(account);
   }
 
   @override
   void dispose() {
+    _authController.removeListener(_handleAccountChange);
+    _savedController.dispose();
     _router.dispose();
     if (_ownsAuthController) {
       _authController.dispose();
@@ -76,7 +96,9 @@ class _CongressAppState extends State<CongressApp> {
   Widget build(BuildContext context) {
     return AuthScope(
       controller: _authController,
-      child: AssistantScope(
+      child: SavedItemsScope(
+        controller: _savedController,
+        child: AssistantScope(
         repository: _assistantRepository,
         child: QuestionsScope(
           repository: _questionsRepository,
@@ -92,6 +114,7 @@ class _CongressAppState extends State<CongressApp> {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

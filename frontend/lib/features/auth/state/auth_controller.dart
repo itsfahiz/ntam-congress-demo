@@ -90,6 +90,37 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) async {
+    if (_attendee == null) {
+      throw const AuthException('Sign in to edit your profile.');
+    }
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final updated = await _repository.updateProfile(
+        fullName: fullName,
+        organization: organization,
+        phone: phone,
+      );
+      // Only replace screen data after a successful repository write.
+      _attendee = updated;
+    } on AuthException catch (error) {
+      _error = error.message;
+      rethrow;
+    } catch (_) {
+      _error = 'Could not save your profile. Try again.';
+      throw const AuthException('Could not save your profile. Try again.');
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> signOut() async {
     await _repository.signOut();
     _attendee = null;
