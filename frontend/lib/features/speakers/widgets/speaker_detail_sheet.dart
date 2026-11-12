@@ -100,7 +100,7 @@ Future<void> showSpeakerDetailSheet(
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () {
                         Navigator.pop(context);
-                        context.push(AppRoutes.agenda);
+                        context.push('${AppRoutes.agenda}?session=${session.id}');
                       },
                     ),
                 ],

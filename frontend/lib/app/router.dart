@@ -121,12 +121,16 @@ GoRouter createRouter(AuthController authController) {
       GoRoute(
         path: AppRoutes.agenda,
         name: 'agenda',
-        builder: (context, state) => const AgendaScreen(),
+        builder: (context, state) => AgendaScreen(
+          initialSessionId: state.uri.queryParameters['session'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.speakers,
         name: 'speakers',
-        builder: (context, state) => const SpeakersScreen(),
+        builder: (context, state) => SpeakersScreen(
+          initialSpeakerId: state.uri.queryParameters['speaker'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.nameTag,

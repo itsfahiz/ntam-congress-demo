@@ -13,7 +13,9 @@ import 'widgets/agenda_session_card.dart';
 import 'widgets/session_detail_sheet.dart';
 
 class AgendaScreen extends StatefulWidget {
-  const AgendaScreen({super.key});
+  const AgendaScreen({super.key, this.initialSessionId});
+
+  final String? initialSessionId;
 
   @override
   State<AgendaScreen> createState() => _AgendaScreenState();
@@ -24,6 +26,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
   CongressDay _day = CongressDay.day1;
   SessionTrack? _track;
   bool _searchOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final targetId = widget.initialSessionId;
+    if (targetId == null) return;
+    for (final session in CongressCatalog.sessions) {
+      if (session.id != targetId) continue;
+      _day = session.day;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showSessionDetailSheet(context, session: session);
+      });
+      break;
+    }
+  }
 
   @override
   void dispose() {
