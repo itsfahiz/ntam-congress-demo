@@ -30,6 +30,7 @@ class MockAuthRepository implements AuthRepository {
 
   final Map<String, _StoredAccount> _accounts = {};
   var _nextBadge = 2;
+  String? _currentEmail;
 
   @override
   String? get accessToken => null;
@@ -38,7 +39,37 @@ class MockAuthRepository implements AuthRepository {
   Future<Attendee?> restoreSession() async => null;
 
   @override
-  Future<void> signOut() async {}
+  Future<void> signOut() async {
+    _currentEmail = null;
+  }
+
+  @override
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) async {
+    final current = _currentEmail;
+    final account = current == null ? null : _accounts[current];
+    if (account == null) {
+      throw const AuthException('Sign in to edit your profile.');
+    }
+    final attendee = account.attendee;
+    final updated = Attendee(
+      id: attendee.id,
+      fullName: fullName.trim(),
+      email: attendee.email,
+      role: attendee.role,
+      organization: organization.trim(),
+      phone: phone.trim().isEmpty ? 'Not provided' : phone.trim(),
+      location: attendee.location,
+    );
+    _accounts[current!] = _StoredAccount(
+      password: account.password,
+      attendee: updated,
+    );
+    return updated;
+  }
 
   @override
   Future<Attendee> signIn({
@@ -55,6 +86,7 @@ class MockAuthRepository implements AuthRepository {
     if (account.password != password) {
       throw const AuthException('Incorrect password.');
     }
+    _currentEmail = normalized;
     return account.attendee;
   }
 
@@ -83,6 +115,7 @@ class MockAuthRepository implements AuthRepository {
       password: draft.password,
       attendee: attendee,
     );
+    _currentEmail = email;
     return attendee;
   }
 }

@@ -11,6 +11,7 @@ import '../auth/domain/attendee.dart';
 import '../auth/state/auth_controller.dart';
 import '../congress/data/congress_catalog.dart';
 import '../saved/state/saved_items_controller.dart';
+import 'widgets/edit_profile_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -42,7 +43,12 @@ class ProfileScreen extends StatelessWidget {
         outlined: true,
         onPressed: () => _showSessionSheet(context),
       ),
-      hero: attendee == null ? null : _ProfileIdentity(attendee: attendee),
+      hero: attendee == null
+          ? null
+          : _ProfileIdentity(
+              attendee: attendee,
+              onEdit: () => showEditProfileSheet(context, attendee: attendee),
+            ),
       body: attendee == null
           ? const Center(
               child: Text(
@@ -172,9 +178,10 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ProfileIdentity extends StatelessWidget {
-  const _ProfileIdentity({required this.attendee});
+  const _ProfileIdentity({required this.attendee, required this.onEdit});
 
   final Attendee attendee;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -199,11 +206,7 @@ class _ProfileIdentity extends StatelessWidget {
                   shape: const CircleBorder(),
                   child: InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: () => showDemoLimitationSheet(
-                      context,
-                      title: 'Profile editing is not connected',
-                      message: 'Photo updates are not available.',
-                    ),
+                    onTap: onEdit,
                     child: Ink(
                       width: 32,
                       height: 32,

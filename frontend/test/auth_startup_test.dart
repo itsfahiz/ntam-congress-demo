@@ -75,6 +75,15 @@ class _DeferredAuthRepository implements AuthRepository {
   Future<Attendee?> restoreSession() => _restore.future;
 
   @override
+  Future<Attendee> updateProfile({
+    required String fullName,
+    required String organization,
+    required String phone,
+  }) async {
+    throw const AuthException('Not used in startup tests.');
+  }
+
+  @override
   Future<void> signOut() async {}
 
   @override
