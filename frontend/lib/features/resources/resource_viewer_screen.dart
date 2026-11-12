@@ -210,7 +210,61 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
           const SizedBox(height: 14),
           AspectRatio(
             aspectRatio: controller.value.aspectRatio,
-            child: VideoPlayer(controller),
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (context, _) {
+                final value = controller.value;
+                final durationMs = value.duration.inMilliseconds;
+                final progress = durationMs > 0
+                    ? value.position.inMilliseconds / durationMs
+                    : 0.0;
+                final caption = switch (progress) {
+                  < 0.25 => 'Opening Ceremony',
+                  < 0.5 => 'Welcome & Introduction',
+                  < 0.75 => 'Pediatric Nutrition',
+                  _ => 'Clinical Research Highlights',
+                };
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoPlayer(controller),
+                    Positioned(
+                      left: 10,
+                      right: 10,
+                      bottom: 8,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xDD052453),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.auto_awesome,
+                                  color: Colors.cyanAccent, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(caption,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
           AnimatedBuilder(
             animation: controller,
