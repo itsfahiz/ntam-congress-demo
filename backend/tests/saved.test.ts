@@ -93,7 +93,7 @@ test('sessions and resources persist together, remain idempotent and private', a
   assert.equal(removed.status, 200);
   assert.equal(removed.body.removed, true);
   assert.deepEqual(
-    (await request('/api/saved', { token: 'user-a' })).body.items?.map((item) => item.itemId),
+    (await request('/api/saved', { token: 'user-a' })).body.items?.map((item) => item.itemId).sort(),
     ['programme', 'sarah'],
   );
   assert.equal((await request('/api/saved/speaker/sarah', {
