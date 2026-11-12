@@ -68,3 +68,19 @@ flutter build apk --release --dart-define-from-file=config.local.json
 
 ## Final submission positioning
 Flutter/Dart UI, Supabase Auth, Node.js/Express REST API, PostgreSQL user data, authenticated Gemini tool calling, lightweight catalogue retrieval, original demo media, real saved bookmarks and interactive Q&A/polls. This is an **assessment demonstration**, not an official Nestlé deployment.
+
+
+## Device feedback follow-up — Search navigation / playable demo / Downloads
+Changes committed on `feat/pre-freeze-ux-polish` after the first device walkthrough:
+- Tapping a Search session result now opens **Agenda** with the exact session's detail sheet; speaker results open **Speakers** with that speaker's detail, and resource results open their resource viewer.
+- Search results use consistent elevated cards, subtitles, category counts and a clear empty state.
+- Recap player now shows seekable playback position and programme captions that change with the timecode. The MP4 is still the original short illustrative title-card clip, not recorded event footage. Confirm `00:00` advances and Play/Pause work during real-device tests.
+- On Android 10+, Download now writes through MediaStore to **Files → Downloads → NTAM Congress**, instead of only private app documents. Export uses the system share/save interface. On Android 9 and older, use Export to Save to Files; no broad storage permission is requested.
+- Android native code changed in `MainActivity.kt`; a full app rebuild is required, not just hot reload.
+
+Extra tests before PR #7 merge:
+1. `flutter analyze && flutter test`, then `flutter run --dart-define-from-file=config.local.json`.
+2. Search → Opening Ceremony must navigate to Agenda and display its detail; a speaker result must navigate to Speakers and display its detail.
+3. Download PDF/MP4 and confirm visible files in Files/Downloads/NTAM Congress. Do not mistake a PostgreSQL bookmark for a local file.
+4. Verify video playback time advances, slides/seek work and the short illustrative captions change.
+5. Run `flutter build apk --release --dart-define-from-file=config.local.json` before freezing. New Android MediaStore integration is not covered by Dart widget tests.
