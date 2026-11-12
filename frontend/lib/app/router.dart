@@ -17,6 +17,7 @@ import '../features/profile/profile_screen.dart';
 import '../features/qa/qa_screen.dart';
 import '../features/quick_access/quick_access_screen.dart';
 import '../features/resources/resources_screen.dart';
+import '../features/resources/resource_viewer_screen.dart';
 import '../features/saved/saved_items_screen.dart';
 import '../features/speakers/speakers_screen.dart';
 import '../features/venue/venue_screen.dart';
@@ -149,6 +150,13 @@ GoRouter createRouter(AuthController authController) {
         path: AppRoutes.resources,
         name: 'resources',
         builder: (context, state) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resourceViewer,
+        name: 'resourceViewer',
+        builder: (context, state) => ResourceViewerScreen(
+          resourceId: state.pathParameters['id'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.saved,

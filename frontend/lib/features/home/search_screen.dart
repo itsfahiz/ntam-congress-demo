@@ -240,7 +240,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           leading: const Icon(Icons.folder_outlined),
                           title: Text(r.title),
                           subtitle: Text(r.kindLabel),
-                          onTap: () => context.push(AppRoutes.resources),
+                          onTap: () => context.push('${AppRoutes.resources}/view/${r.id}'),
                         ),
                     ],
                   ]),

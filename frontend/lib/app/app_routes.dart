@@ -14,6 +14,7 @@ abstract final class AppRoutes {
   static const voting = '/voting';
   static const qa = '/qa';
   static const resources = '/resources';
+  static const resourceViewer = '/resources/view/:id';
   static const saved = '/saved';
   static const exhibitors = '/exhibitors';
   static const assistant = '/assistant';

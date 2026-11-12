@@ -146,20 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _FilterChoice {
-  const _FilterChoice(this.label, this.track);
-
-  final String label;
-  final SessionTrack? track;
-}
-
-const _sessionFilterOptions = [
-  _FilterChoice('All tracks', null),
-  _FilterChoice('Keynote', SessionTrack.keynote),
-  _FilterChoice('Nutrition', SessionTrack.nutrition),
-  _FilterChoice('Research', SessionTrack.research),
-];
-
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({
     required this.attendee,
