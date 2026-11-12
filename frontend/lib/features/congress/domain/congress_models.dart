@@ -321,7 +321,7 @@ class CongressResource {
   };
 
   String get availabilityLabel => switch (kind) {
-    ResourceKind.video => 'Demo MP4 · playable',
+    ResourceKind.video => 'External video · YouTube',
     ResourceKind.pdf => 'Original demo PDF · downloadable',
     ResourceKind.slides => 'Original demo slides · PDF',
   };

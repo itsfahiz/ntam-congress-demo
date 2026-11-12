@@ -13,7 +13,7 @@ export const resources: ResourceRecord[] = [
   { id: 'keynote-slides', title: 'Keynote Presentation Slides', kind: 'slides',
     summary: 'Illustrative outline of the opening ceremony, welcome, pediatric nutrition and closing keynote.',
     availability: 'Original assessment-demo slide deck distributed as PDF, available through the device Save/Share chooser.' },
-  { id: 'session-recap', title: 'Day 1 Session Recap', kind: 'video',
-    summary: 'Illustrative recap text for Day 1 congress sessions.',
-    availability: 'Original short assessment-demo MP4 title-card video, available for playback and Save/Share. Not actual congress footage.' },
+  { id: 'session-recap', title: 'Introduction to Food & Health', kind: 'video',
+    summary: 'Stanford Introduction to Food & Health course trailer, an external educational video about food and dietary habits, not footage of the mock NTAM congress. Published by Stanford University / Digital Medic. Official link: https://www.youtube.com/watch?v=z7x1aaZ03xU.',
+    availability: 'Watch Video opens YouTube; an internet connection is needed. This third-party video is not bundled or downloaded.' },
 ];

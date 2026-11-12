@@ -430,14 +430,18 @@ abstract final class CongressCatalog {
             '4. Closing Keynote — programme recap',
       ),
       CongressResource(
+        // Preserve stable ID so saved PostgreSQL bookmarks continue working.
         id: 'session-recap',
-        title: 'Day 1 Session Recap',
-        subtitle: 'Demo recap title card (MP4)',
+        title: 'Introduction to Food & Health',
+        subtitle: 'Stanford University · Course trailer (YouTube)',
         kind: ResourceKind.video,
         body:
-            'A short original demo MP4 is included. It is a title-card preview, not congress footage.\n\n'
-            'Day 1 outline:\n'
-            '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}',
+            'Stanford Introduction to Food & Health introduces practical '
+            'nutrition and food choices. This is the publicly linked '
+            'Stanford course trailer, not a recorded NTAM/Nestle event.\n\n'
+            'Source: Stanford University / Digital Medic. '
+            'Watch Video opens the original video on YouTube. '
+            'Internet access is required.',
       ),
     ];
   }
