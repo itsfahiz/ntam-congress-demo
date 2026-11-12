@@ -22,6 +22,7 @@ class ResourceViewerScreen extends StatefulWidget {
 
 class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
   VideoPlayerController? _video;
+  bool _videoLoaded = false;
   bool _busy = false;
   String? _error;
   String? _offlinePath;
@@ -46,7 +47,7 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     try {
       await controller.initialize();
       await controller.setLooping(true);
-      if (mounted) setState(() {});
+      if (mounted) setState(() => _videoLoaded = true);
     } catch (_) {
       if (mounted) setState(() => _error = 'Demo video cannot be played on this device.');
     }
@@ -187,44 +188,110 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     );
   }
 
+  String _time(Duration duration) {
+    final minutes = duration.inMinutes.toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   Widget _videoPlayer(CongressResource resource) {
     final controller = _video;
-    if (controller == null || !controller.value.isInitialized) {
-      return Center(child: _error == null
-          ? const CircularProgressIndicator()
-          : const Text('Video preview unavailable.'));
+    if (controller == null || !_videoLoaded) {
+      return Center(
+        child: _error == null
+            ? const CircularProgressIndicator()
+            : const Text('Video preview unavailable.'),
+      );
     }
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        AspectRatio(
-          aspectRatio: controller.value.aspectRatio,
-          child: VideoPlayer(controller),
-        ),
-        const SizedBox(height: 12),
-        IconButton.filled(
-          tooltip: controller.value.isPlaying ? 'Pause video' : 'Play video',
-          icon: Icon(controller.value.isPlaying
-              ? Icons.pause_rounded : Icons.play_arrow_rounded),
-          onPressed: () async {
-            if (controller.value.isPlaying) {
-              await controller.pause();
-            } else {
-              await controller.play();
-            }
-            if (mounted) setState(() {});
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.all(22),
-          child: Text(
-            'Demo video title card for the Day 1 programme. '
-            'Not a recording of actual congress sessions.\n\n'
-            '${resource.body}',
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 14),
+          AspectRatio(
+            aspectRatio: controller.value.aspectRatio,
+            child: VideoPlayer(controller),
           ),
-        ),
-      ],
+          AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) {
+              final value = controller.value;
+              final duration = value.duration;
+              final position = value.position;
+              final maximum = duration.inMilliseconds > 0
+                  ? duration.inMilliseconds.toDouble()
+                  : 1.0;
+              final progress = position.inMilliseconds
+                  .toDouble()
+                  .clamp(0.0, maximum);
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                    child: Row(
+                      children: [
+                        IconButton.filled(
+                          tooltip: value.isPlaying ? 'Pause video' : 'Play video',
+                          icon: Icon(value.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded),
+                          onPressed: () async {
+                            if (value.isPlaying) {
+                              await controller.pause();
+                            } else {
+                              await controller.play();
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Slider(
+                            value: progress,
+                            min: 0,
+                            max: maximum,
+                            onChanged: (next) async {
+                              await controller.seekTo(
+                                Duration(milliseconds: next.round()),
+                              );
+                            },
+                          ),
+                        ),
+                        Text('${_time(position)} / ${_time(duration)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (value.isPlaying)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Playing short illustrative recap clip',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Text(
+              'This is an original demonstration title-card clip, '
+              'not a recording of actual congress sessions.\n\n'
+              '${resource.body}',
+              style: const TextStyle(
+                  fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,10 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../app/app_routes.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
-import '../agenda/widgets/session_detail_sheet.dart';
 import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
-import '../speakers/widgets/speaker_detail_sheet.dart';
 
 /// Search across the *whole* local congress catalogue, not just Day 1.
 class SearchScreen extends StatefulWidget {
@@ -222,54 +220,182 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         Expanded(
           child: total == 0
-              ? const Center(child: Text('No matching congress items. Try a different term.'))
-              : ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 28),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.search_off_rounded,
+                            size: 42, color: AppColors.textSecondary),
+                        const SizedBox(height: 12),
+                        const Text('No matching items',
+                            style: TextStyle(fontSize: 19,
+                                fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        const Text('Try another keyword, category or session filter.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.textSecondary)),
+                        const SizedBox(height: 16),
+                        OutlinedButton(
+                          onPressed: () => setState(() {
+                            _controller.clear();
+                            _day = null;
+                            _track = null;
+                            _group = _SearchGroup.all;
+                          }),
+                          child: const Text('Clear all filters'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
                   children: [
                     if (showSessions && sessions.isNotEmpty) ...[
-                      const _SearchSectionLabel('Sessions'),
-                      for (final s in sessions)
-                        ListTile(
-                          leading: const Icon(Icons.calendar_month_outlined),
-                          title: Text(s.title),
-                          subtitle: Text('${s.timeLabel} · ${CongressCatalog.speakerName(s)}'),
-                          onTap: () => showSessionDetailSheet(context, session: s),
+                      _SearchSectionLabel('Sessions', sessions.length),
+                      for (final session in sessions)
+                        _ResultCard(
+                          key: ValueKey('session-${session.id}'),
+                          icon: Icons.event_note_rounded,
+                          heading: session.title,
+                          supporting:
+                              '${CongressCatalog.infoFor(session.day).shortLabel}  ·  '
+                              '${session.timeLabel}  ·  '
+                              '${CongressCatalog.speakerName(session)}',
+                          onTap: () => context.push(
+                            '${AppRoutes.agenda}?session=${session.id}',
+                          ),
                         ),
                     ],
                     if (showSpeakers && speakers.isNotEmpty) ...[
-                      const _SearchSectionLabel('Speakers'),
-                      for (final s in speakers)
-                        ListTile(
-                          leading: const Icon(Icons.person_outline),
-                          title: Text(s.fullName),
-                          subtitle: Text(s.title),
-                          onTap: () => showSpeakerDetailSheet(context, speaker: s),
+                      _SearchSectionLabel('Speakers', speakers.length),
+                      for (final speaker in speakers)
+                        _ResultCard(
+                          key: ValueKey('speaker-${speaker.id}'),
+                          icon: Icons.person_outline_rounded,
+                          heading: speaker.fullName,
+                          supporting: '${speaker.title}  ·  ${speaker.country}',
+                          onTap: () => context.push(
+                            '${AppRoutes.speakers}?speaker=${speaker.id}',
+                          ),
                         ),
                     ],
                     if (showResources && resources.isNotEmpty) ...[
-                      const _SearchSectionLabel('Resources'),
-                      for (final r in resources)
-                        ListTile(
-                          leading: const Icon(Icons.folder_outlined),
-                          title: Text(r.title),
-                          subtitle: Text(r.kindLabel),
-                          onTap: () => context.push('${AppRoutes.resources}/view/${r.id}'),
+                      _SearchSectionLabel('Resources', resources.length),
+                      for (final resource in resources)
+                        _ResultCard(
+                          key: ValueKey('resource-${resource.id}'),
+                          icon: Icons.description_outlined,
+                          heading: resource.title,
+                          supporting: resource.kindLabel,
+                          onTap: () => context.push(
+                            '${AppRoutes.resources}/view/${resource.id}',
+                          ),
                         ),
                     ],
-                  ]),
+                  ],
+                ),
         ),
       ]),
     );
   }
 }
 
+class _ResultCard extends StatelessWidget {
+  const _ResultCard({
+    super.key,
+    required this.icon,
+    required this.heading,
+    required this.supporting,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String heading;
+  final String supporting;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFDDE6F3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: 46, width: 46,
+                  decoration: BoxDecoration(
+                    color: AppColors.talkWash,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: AppColors.iconBlue),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(heading,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 5),
+                      Text(supporting,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.iconBlue, size: 22),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SearchSectionLabel extends StatelessWidget {
-  const _SearchSectionLabel(this.title);
+  const _SearchSectionLabel(this.title, this.count);
   final String title;
+  final int count;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-    child: Text(title.toUpperCase(), style: const TextStyle(
-      color: AppColors.iconBlue, fontWeight: FontWeight.w800,
-      letterSpacing: 0.7, fontSize: 12)),
+    padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+    child: Row(children: [
+      Text(title.toUpperCase(),
+          style: const TextStyle(
+              color: AppColors.iconBlue,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8)),
+      const Spacer(),
+      Text('$count',
+          style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w700)),
+    ]),
   );
 }

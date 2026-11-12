@@ -43,6 +43,31 @@ void main() {
     expect(find.text('Pediatric Nutrition Guide'), findsNothing);
   });
 
+  testWidgets('Search session opens matching detail on the Agenda page',
+      (tester) async {
+    await signIn(tester);
+    await tester.tap(find.text('Search sessions, speakers, topics...'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Opening Ceremony'));
+    await tester.pumpAndSettle();
+    expect(find.text('Congress Agenda'), findsOneWidget);
+    expect(find.text('Opening Ceremony'), findsWidgets);
+    expect(find.text('Main Auditorium'), findsWidgets);
+  });
+
+  testWidgets('Search speaker opens detail on the Speakers page',
+      (tester) async {
+    await signIn(tester);
+    await tester.tap(find.text('Search sessions, speakers, topics...'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Speakers'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dr. Sarah Johnson'));
+    await tester.pumpAndSettle();
+    expect(find.text('Global Medical'), findsWidgets);
+    expect(find.text('Pediatric Nutrition Specialist'), findsWidgets);
+  });
+
   testWidgets('Home filter opens full event search and day/track filters',
       (tester) async {
     await signIn(tester);
