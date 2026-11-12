@@ -106,6 +106,43 @@ void main() {
     expect(find.textContaining('Dr. Sarah Johnson'), findsOneWidget);
   });
 
+  testWidgets('Resources folder icon browses existing catalog groups', (
+    tester,
+  ) async {
+    await pumpPhoneApp(tester);
+    await signInAsDemo(tester);
+    await openFromQuickAccess(tester, 'Slides, PDFs and session files');
+
+    expect(find.text('Congress Scientific Programme'), findsOneWidget);
+    expect(find.text('Keynote Presentation Slides'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Browse folders'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PDFs'), findsOneWidget);
+    expect(find.text('Slides'), findsOneWidget);
+    expect(find.text('Videos'), findsOneWidget);
+    expect(find.text('Saved'), findsOneWidget);
+    expect(find.text('Congress Scientific Programme'), findsNothing);
+
+    await tester.tap(find.text('PDFs'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Congress Scientific Programme'), findsOneWidget);
+    expect(find.text('Pediatric Nutrition Guide'), findsOneWidget);
+    expect(find.text('Keynote Presentation Slides'), findsNothing);
+    expect(find.text('Day 1 Session Recap'), findsNothing);
+
+    await tester.tap(find.byTooltip('Browse folders'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Show list'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Congress Scientific Programme'), findsOneWidget);
+    expect(find.text('Keynote Presentation Slides'), findsOneWidget);
+    expect(find.text('PDFs'), findsNothing);
+  });
+
   testWidgets('Exhibitors opens illustrative demo booths', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);

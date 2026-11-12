@@ -20,6 +20,7 @@ class QuickAccessScreen extends StatefulWidget {
 class _QuickAccessScreenState extends State<QuickAccessScreen> {
   final _searchController = TextEditingController();
   QuickAccessCategory? _category;
+  var _listView = false;
 
   @override
   void dispose() {
@@ -45,7 +46,10 @@ class _QuickAccessScreenState extends State<QuickAccessScreen> {
         tooltip: 'Back',
         onPressed: () => context.pop(),
       ),
-      trailing: const _GoldGridMark(),
+      trailing: _LayoutToggle(
+        listView: _listView,
+        onPressed: () => setState(() => _listView = !_listView),
+      ),
       hero: const _ExploreBanner(),
       body: Column(
         children: [
@@ -87,6 +91,22 @@ class _QuickAccessScreenState extends State<QuickAccessScreen> {
           Expanded(
             child: items.isEmpty
                 ? const _EmptyShortcuts()
+                : _listView
+                ? ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    itemCount: items.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return QuickAccessListTile(
+                        key: ValueKey(item.route),
+                        item: item,
+                        onTap: () => context.push(item.route),
+                      );
+                    },
+                  )
                 : GridView.builder(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                     keyboardDismissBehavior:
@@ -152,8 +172,11 @@ class _OutlinedSquareButton extends StatelessWidget {
   }
 }
 
-class _GoldGridMark extends StatelessWidget {
-  const _GoldGridMark();
+class _LayoutToggle extends StatelessWidget {
+  const _LayoutToggle({required this.listView, required this.onPressed});
+
+  final bool listView;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -168,30 +191,46 @@ class _GoldGridMark extends StatelessWidget {
       );
     }
 
-    return Container(
-      width: 44,
-      height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
+    return Tooltip(
+      message: listView ? 'Grid view' : 'List view',
+      child: Material(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-      ),
-      child: SizedBox(
-        width: 18,
-        height: 18,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [tile(), tile()],
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [tile(), tile()],
-            ),
-          ],
+            child: listView
+                ? const Icon(
+                    Icons.view_list_rounded,
+                    color: AppColors.gold,
+                    size: 22,
+                  )
+                : SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [tile(), tile()],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [tile(), tile()],
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
         ),
       ),
     );

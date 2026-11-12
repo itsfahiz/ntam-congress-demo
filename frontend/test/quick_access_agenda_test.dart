@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ntam_congress_demo/app/congress_app.dart';
+import 'package:ntam_congress_demo/features/quick_access/widgets/quick_access_card.dart';
 
 import 'support/home_shortcuts.dart';
 
@@ -52,6 +53,34 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Explore Congress'), findsOneWidget);
+  });
+
+  testWidgets('Quick Access grid icon toggles list and grid layouts', (
+    tester,
+  ) async {
+    await pumpPhoneApp(tester);
+    await signInAsDemo(tester);
+    await openQuickAccess(tester);
+
+    expect(find.byType(QuickAccessCard), findsWidgets);
+    expect(find.byType(QuickAccessListTile), findsNothing);
+    expect(find.byTooltip('List view'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('List view'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QuickAccessListTile), findsWidgets);
+    expect(find.byType(QuickAccessCard), findsNothing);
+    expect(find.text('Speakers'), findsOneWidget);
+    expect(find.text('View full congress schedule'), findsOneWidget);
+    expect(find.byTooltip('Grid view'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Grid view'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QuickAccessCard), findsWidgets);
+    expect(find.byType(QuickAccessListTile), findsNothing);
+    expect(find.byTooltip('List view'), findsOneWidget);
   });
 
   testWidgets('Quick Access Agenda card opens Congress Agenda', (tester) async {

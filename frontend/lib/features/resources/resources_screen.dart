@@ -5,7 +5,6 @@ import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_filter_chips.dart';
 import '../../core/widgets/congress_hero_banner.dart';
-import '../../core/widgets/demo_limitation_sheet.dart';
 import '../../core/widgets/light_search_field.dart';
 import '../../core/widgets/light_sheet.dart';
 import '../congress/data/congress_catalog.dart';
@@ -23,6 +22,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   final _savedIds = <String>{};
   ResourceKind? _kind;
   var _savedOnly = false;
+  var _folderBrowse = false;
 
   @override
   void dispose() {
@@ -118,16 +118,17 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
         onPressed: () => context.pop(),
       ),
       trailing: CongressHeaderButton(
-        icon: Icons.folder_outlined,
-        tooltip: 'About this library',
+        icon: _folderBrowse ? Icons.view_list_rounded : Icons.folder_outlined,
+        tooltip: _folderBrowse ? 'Show list' : 'Browse folders',
         outlined: true,
         foreground: AppColors.gold,
-        onPressed: () => showDemoLimitationSheet(
-          context,
-          title: 'Congress library',
-          message:
-              'These cards open on-device summaries, not downloadable files.',
-        ),
+        onPressed: () => setState(() {
+          _folderBrowse = !_folderBrowse;
+          if (!_folderBrowse) {
+            _kind = null;
+            _savedOnly = false;
+          }
+        }),
       ),
       hero: const CongressHeroBanner(
         icon: Icons.cloud_download_rounded,
@@ -152,43 +153,69 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
               onChanged: (_) => setState(() {}),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-            child: CongressFilterChips<String>(
-              selected: _savedOnly ? 'saved' : (_kind?.name ?? 'all'),
-              unselectedForeground: AppColors.mutedLabel,
-              unselectedWeight: FontWeight.w600,
-              unselectedBorder: const Color(0xFFE1E6F0),
-              onSelected: (value) => setState(() {
-                switch (value) {
-                  case 'saved':
-                    _savedOnly = true;
-                    _kind = null;
-                  case 'pdf':
-                    _savedOnly = false;
-                    _kind = ResourceKind.pdf;
-                  case 'slides':
-                    _savedOnly = false;
-                    _kind = ResourceKind.slides;
-                  case 'video':
-                    _savedOnly = false;
-                    _kind = ResourceKind.video;
-                  default:
-                    _savedOnly = false;
-                    _kind = null;
-                }
-              }),
-              options: const [
-                FilterChipOption(value: 'all', label: 'All'),
-                FilterChipOption(value: 'pdf', label: 'PDF'),
-                FilterChipOption(value: 'slides', label: 'Slides'),
-                FilterChipOption(value: 'video', label: 'Videos'),
-                FilterChipOption(value: 'saved', label: 'Saved'),
-              ],
+          if (!_folderBrowse)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              child: CongressFilterChips<String>(
+                selected: _savedOnly ? 'saved' : (_kind?.name ?? 'all'),
+                unselectedForeground: AppColors.mutedLabel,
+                unselectedWeight: FontWeight.w600,
+                unselectedBorder: const Color(0xFFE1E6F0),
+                onSelected: (value) => setState(() {
+                  switch (value) {
+                    case 'saved':
+                      _savedOnly = true;
+                      _kind = null;
+                    case 'pdf':
+                      _savedOnly = false;
+                      _kind = ResourceKind.pdf;
+                    case 'slides':
+                      _savedOnly = false;
+                      _kind = ResourceKind.slides;
+                    case 'video':
+                      _savedOnly = false;
+                      _kind = ResourceKind.video;
+                    default:
+                      _savedOnly = false;
+                      _kind = null;
+                  }
+                }),
+                options: const [
+                  FilterChipOption(value: 'all', label: 'All'),
+                  FilterChipOption(value: 'pdf', label: 'PDF'),
+                  FilterChipOption(value: 'slides', label: 'Slides'),
+                  FilterChipOption(value: 'video', label: 'Videos'),
+                  FilterChipOption(value: 'saved', label: 'Saved'),
+                ],
+              ),
             ),
-          ),
           Expanded(
-            child: resources.isEmpty
+            child: _folderBrowse
+                ? _FolderGrid(
+                    pdfCount: CongressCatalog.filterResources(
+                      kind: ResourceKind.pdf,
+                      query: _searchController.text,
+                    ).length,
+                    slidesCount: CongressCatalog.filterResources(
+                      kind: ResourceKind.slides,
+                      query: _searchController.text,
+                    ).length,
+                    videoCount: CongressCatalog.filterResources(
+                      kind: ResourceKind.video,
+                      query: _searchController.text,
+                    ).length,
+                    savedCount: CongressCatalog.filterResources(
+                      query: _searchController.text,
+                      savedIds: _savedIds,
+                      savedOnly: true,
+                    ).length,
+                    onOpen: (kind, savedOnly) => setState(() {
+                      _folderBrowse = false;
+                      _kind = kind;
+                      _savedOnly = savedOnly;
+                    }),
+                  )
+                : resources.isEmpty
                 ? const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
@@ -221,6 +248,165 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FolderGrid extends StatelessWidget {
+  const _FolderGrid({
+    required this.pdfCount,
+    required this.slidesCount,
+    required this.videoCount,
+    required this.savedCount,
+    required this.onOpen,
+  });
+
+  final int pdfCount;
+  final int slidesCount;
+  final int videoCount;
+  final int savedCount;
+  final void Function(ResourceKind? kind, bool savedOnly) onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const paddingH = 20.0;
+        const paddingTop = 16.0;
+        const paddingBottom = 24.0;
+        const gap = 12.0;
+        final tileWidth =
+            (constraints.maxWidth - paddingH * 2 - gap).clamp(1.0, 400.0);
+        final tileHeight =
+            ((constraints.maxHeight - paddingTop - paddingBottom - gap) / 2)
+                .clamp(112.0, 280.0);
+        return GridView.count(
+          padding: const EdgeInsets.fromLTRB(
+            paddingH,
+            paddingTop,
+            paddingH,
+            paddingBottom,
+          ),
+          crossAxisCount: 2,
+          mainAxisSpacing: gap,
+          crossAxisSpacing: gap,
+          childAspectRatio: tileWidth / tileHeight,
+          children: [
+            _FolderTile(
+              label: 'PDFs',
+              count: pdfCount,
+              icon: Icons.picture_as_pdf_rounded,
+              wash: const Color(0xFFFFE8E6),
+              ink: const Color(0xFFD64545),
+              onTap: () => onOpen(ResourceKind.pdf, false),
+            ),
+            _FolderTile(
+              label: 'Slides',
+              count: slidesCount,
+              icon: Icons.slideshow_rounded,
+              wash: AppColors.ceremonyWash,
+              ink: AppColors.gold,
+              onTap: () => onOpen(ResourceKind.slides, false),
+            ),
+            _FolderTile(
+              label: 'Videos',
+              count: videoCount,
+              icon: Icons.play_circle_rounded,
+              wash: AppColors.talkWash,
+              ink: AppColors.iconBlue,
+              onTap: () => onOpen(ResourceKind.video, false),
+            ),
+            _FolderTile(
+              label: 'Saved',
+              count: savedCount,
+              icon: Icons.bookmark_rounded,
+              wash: AppColors.categoryWash,
+              ink: AppColors.categoryInk,
+              onTap: () => onOpen(null, true),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _FolderTile extends StatelessWidget {
+  const _FolderTile({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.wash,
+    required this.ink,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color wash;
+  final Color ink;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.fieldFill,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE8ECF4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: wash,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: ink),
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$count on-device ${count == 1 ? 'summary' : 'summaries'}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
