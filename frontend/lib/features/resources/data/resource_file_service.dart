@@ -40,7 +40,7 @@ abstract final class ResourceFileService {
   /// Older Android / other platforms use Export to Files instead.
   static Future<String> download(CongressResource resource) async {
     if (defaultTargetPlatform != TargetPlatform.android) {
-      throw const PlatformException(
+      throw PlatformException(
         code: 'EXPORT_REQUIRED',
         message: 'Use Export to save this file on your device.',
       );
@@ -56,7 +56,7 @@ abstract final class ResourceFileService {
       },
     );
     if (result == null || result.isEmpty) {
-      throw const PlatformException(
+      throw PlatformException(
         code: 'DOWNLOAD_FAILED',
         message: 'The download did not return a file location.',
       );
