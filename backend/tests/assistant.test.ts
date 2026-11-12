@@ -20,6 +20,7 @@ const SESSION_IDS = new Set([
 ]);
 const SPEAKER_IDS = new Set(['sarah', 'hassan', 'ahmed', 'committee']);
 const DAY_IDS = new Set(['day1', 'day2']);
+const RESOURCE_IDS = new Set(['programme', 'pediatric-guide', 'keynote-slides', 'session-recap']);
 
 let server: Server;
 let baseUrl: string;
@@ -76,6 +77,8 @@ function assertCatalogSources(sources: AssistantSource[] | undefined) {
       assert.ok(SPEAKER_IDS.has(source.id));
     } else if (source.type === 'day') {
       assert.ok(DAY_IDS.has(source.id));
+    } else if (source.type === 'resource') {
+      assert.ok(RESOURCE_IDS.has(source.id));
     } else {
       assert.fail(`unknown source type ${source.type}`);
     }

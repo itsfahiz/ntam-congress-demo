@@ -1,9 +1,11 @@
 import { event, sessions, speakers } from '../../data/catalog.js';
+import { resources } from '../../data/resources.js';
 import type {
   DayPayload,
   RetrievalRecord,
   SessionPayload,
   SpeakerPayload,
+  ResourcePayload,
 } from '../types/contracts.js';
 
 const TOP_K = 3;
@@ -64,7 +66,8 @@ const STOPWORDS = new Set([
 type RetrievalDocument =
   | { type: 'day'; id: string; tokens: Set<string>; payload: DayPayload }
   | { type: 'speaker'; id: string; tokens: Set<string>; payload: SpeakerPayload }
-  | { type: 'session'; id: string; tokens: Set<string>; payload: SessionPayload };
+  | { type: 'session'; id: string; tokens: Set<string>; payload: SessionPayload }
+  | { type: 'resource'; id: string; tokens: Set<string>; payload: ResourcePayload };
 
 type RankedRecord = RetrievalRecord & { score: number };
 
@@ -157,7 +160,14 @@ function buildDocuments(): RetrievalDocument[] {
     };
   });
 
-  return [...dayDocs, ...speakerDocs, ...sessionDocs];
+  const resourceDocs: RetrievalDocument[] = resources.map((resource) => {
+    const payload: ResourcePayload = { type: 'resource', ...resource };
+    return { type: 'resource', id: resource.id,
+      tokens: uniqueTokens([resource.title, resource.kind, resource.summary,
+        resource.availability, 'resource materials library files'].join(' ')),
+      payload };
+  });
+  return [...dayDocs, ...speakerDocs, ...sessionDocs, ...resourceDocs];
 }
 
 const DOCUMENTS = buildDocuments();
@@ -197,6 +207,10 @@ function phraseBonus(question: string, doc: RetrievalDocument) {
   if (doc.type === 'speaker') {
     const name = normalize(doc.payload.fullName).replace(/^dr\.?\s+/, '');
     if (name.length >= 6 && q.includes(name)) return 14;
+  }
+  if (doc.type === 'resource') {
+    const title = normalize(doc.payload.title);
+    if (title.length >= 8 && q.includes(title)) return 14;
   }
   if (doc.type === 'day') {
     const venue = normalize(doc.payload.venue?.name ?? '');

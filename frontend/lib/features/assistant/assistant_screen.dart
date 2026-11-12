@@ -144,6 +144,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
       await showSpeakerDetailSheet(context, speaker: speaker);
       return;
     }
+    if (source.isResource && catalogResource(source.id) != null) {
+      context.push(AppRoutes.resources);
+      return;
+    }
     if (source.isDay && (source.id == 'day1' || source.id == 'day2')) {
       context.push(AppRoutes.agenda);
     }

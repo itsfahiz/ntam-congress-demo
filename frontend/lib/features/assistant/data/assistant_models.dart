@@ -14,6 +14,7 @@ class AssistantSource {
   bool get isSession => type == 'session';
   bool get isSpeaker => type == 'speaker';
   bool get isDay => type == 'day';
+  bool get isResource => type == 'resource';
 }
 
 class AssistantAction {

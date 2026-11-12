@@ -9,6 +9,13 @@ CongressSession? catalogSession(String id) {
   return null;
 }
 
+CongressResource? catalogResource(String id) {
+  for (final resource in CongressCatalog.resources) {
+    if (resource.id == id) return resource;
+  }
+  return null;
+}
+
 CongressSpeaker? catalogSpeaker(String id) {
   for (final speaker in CongressCatalog.speakers) {
     if (speaker.id == id) return speaker;
@@ -23,6 +30,9 @@ String sourceLabel(AssistantSource source) {
   if (source.isSpeaker) {
     return catalogSpeaker(source.id)?.fullName ?? 'Speaker';
   }
+  if (source.isResource) {
+    return catalogResource(source.id)?.title ?? 'Resource';
+  }
   if (source.isDay) {
     if (source.id == 'day1') return 'Day 1';
     if (source.id == 'day2') return 'Day 2';
@@ -34,6 +44,7 @@ String sourceLabel(AssistantSource source) {
 bool canOpenSource(AssistantSource source) {
   if (source.isSession) return catalogSession(source.id) != null;
   if (source.isSpeaker) return catalogSpeaker(source.id) != null;
+  if (source.isResource) return catalogResource(source.id) != null;
   if (source.isDay) return source.id == 'day1' || source.id == 'day2';
   return false;
 }

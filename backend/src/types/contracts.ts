@@ -2,7 +2,7 @@ export type CatalogDayId = 'day1' | 'day2';
 export type SessionTrack = 'keynote' | 'nutrition' | 'research';
 export type SpeakerFocus = 'nutrition' | 'pediatrics' | 'research';
 export type QuestionTopic = 'general' | 'nutrition' | 'research' | 'clinical';
-export type SourceType = 'session' | 'speaker' | 'day';
+export type SourceType = 'session' | 'speaker' | 'day' | 'resource';
 
 export type CatalogVenue = {
   name: string;
@@ -89,10 +89,16 @@ export type DayPayload = CatalogDay & {
   venue: CatalogVenue;
 };
 
+export type ResourcePayload = {
+  type: 'resource'; id: string; title: string;
+  kind: 'pdf' | 'slides' | 'video';
+  summary: string; availability: string;
+};
 export type RetrievalRecord =
   | { type: 'session'; id: string; payload: SessionPayload }
   | { type: 'speaker'; id: string; payload: SpeakerPayload }
-  | { type: 'day'; id: string; payload: DayPayload };
+  | { type: 'day'; id: string; payload: DayPayload }
+  | { type: 'resource'; id: string; payload: ResourcePayload };
 
 export type AuthUser = {
   id: string;
