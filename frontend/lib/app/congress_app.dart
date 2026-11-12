@@ -57,7 +57,9 @@ class _CongressAppState extends State<CongressApp> {
     _authController =
         widget.authController ?? AuthController(MockAuthRepository());
     _assistantRepository =
-        widget.assistantRepository ?? HttpAssistantRepository();
+        widget.assistantRepository ?? HttpAssistantRepository(
+          tokenProvider: () => _authController.accessToken ?? '',
+        );
     _questionsRepository =
         widget.questionsRepository ?? MockQuestionsRepository();
     _badgeQrRepository =

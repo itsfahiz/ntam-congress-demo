@@ -6,11 +6,8 @@ import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_text_field.dart';
 import '../agenda/widgets/session_detail_sheet.dart';
-import '../auth/state/auth_controller.dart';
-import '../saved/state/saved_items_controller.dart';
 import '../speakers/widgets/speaker_detail_sheet.dart';
 import 'assistant_answer_text.dart';
-import 'assistant_local.dart';
 import 'catalog_lookup.dart';
 import 'data/assistant_models.dart';
 import 'data/assistant_repository.dart';
@@ -62,17 +59,6 @@ class _AssistantScreenState extends State<AssistantScreen> {
       );
     });
     _scrollToEnd();
-
-    final local = localAssistantReply(
-      question,
-      AuthScope.maybeOf(context)?.attendee,
-      savedItems: SavedItemsScope.maybeOf(context),
-    );
-    if (local != null) {
-      if (!mounted) return;
-      _replace(id, ChatMessage(id: id, question: question, reply: local));
-      return;
-    }
 
     try {
       final reply = await _repository.ask(question);
@@ -283,7 +269,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Answers use the congress catalogue and Gemini for event details, and your signed-in profile for personal questions. No medical advice.',
+          'Gemini can check the congress catalogue and your authenticated attendee records using secure read-only tools. No medical advice.',
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
