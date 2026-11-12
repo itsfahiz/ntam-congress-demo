@@ -13,6 +13,7 @@ Future<void> showSpeakerDetailSheet(
   required CongressSpeaker speaker,
 }) {
   final sessions = CongressCatalog.sessionsForSpeaker(speaker.id);
+  final parentContext = context;
 
   return showModalBottomSheet<void>(
     context: context,
