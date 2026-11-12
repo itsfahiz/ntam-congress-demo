@@ -79,8 +79,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
         phone: _phone.text.trim(),
       );
       if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Profile updated successfully.')),
       );
     } catch (error) {
