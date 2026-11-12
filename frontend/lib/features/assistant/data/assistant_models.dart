@@ -16,16 +16,25 @@ class AssistantSource {
   bool get isDay => type == 'day';
 }
 
+class AssistantAction {
+  const AssistantAction({required this.label, required this.route});
+
+  final String label;
+  final String route;
+}
+
 class AssistantReply {
   const AssistantReply({
     required this.answer,
     required this.grounded,
     required this.sources,
+    this.actions = const [],
   });
 
   final String answer;
   final bool grounded;
   final List<AssistantSource> sources;
+  final List<AssistantAction> actions;
 
   factory AssistantReply.fromJson(Map<String, dynamic> json) {
     final rawSources = json['sources'];

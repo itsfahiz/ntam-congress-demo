@@ -6,8 +6,10 @@ import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../../core/widgets/congress_text_field.dart';
 import '../agenda/widgets/session_detail_sheet.dart';
+import '../auth/state/auth_controller.dart';
 import '../speakers/widgets/speaker_detail_sheet.dart';
 import 'assistant_answer_text.dart';
+import 'assistant_local.dart';
 import 'catalog_lookup.dart';
 import 'data/assistant_models.dart';
 import 'data/assistant_repository.dart';
@@ -59,6 +61,16 @@ class _AssistantScreenState extends State<AssistantScreen> {
       );
     });
     _scrollToEnd();
+
+    final local = localAssistantReply(
+      question,
+      AuthScope.maybeOf(context)?.attendee,
+    );
+    if (local != null) {
+      if (!mounted) return;
+      _replace(id, ChatMessage(id: id, question: question, reply: local));
+      return;
+    }
 
     try {
       final reply = await _repository.ask(question);
@@ -437,6 +449,29 @@ class _AnswerCard extends StatelessWidget {
                 height: 1.4,
               ),
             ),
+            if (reply.actions.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final action in reply.actions)
+                    ActionChip(
+                      onPressed: () => context.push(action.route),
+                      backgroundColor: AppColors.fieldIconWash,
+                      side: const BorderSide(color: AppColors.fieldBorder),
+                      label: Text(
+                        action.label,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
             if (sources.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Text(
