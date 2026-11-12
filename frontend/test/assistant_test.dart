@@ -13,6 +13,8 @@ import 'package:ntam_congress_demo/features/assistant/data/http_assistant_reposi
 import 'package:ntam_congress_demo/features/auth/data/mock_auth_repository.dart';
 import 'package:ntam_congress_demo/features/auth/domain/attendee.dart';
 import 'package:ntam_congress_demo/features/auth/state/auth_controller.dart';
+import 'package:ntam_congress_demo/features/saved/data/mock_saved_items_repository.dart';
+import 'package:ntam_congress_demo/features/saved/state/saved_items_controller.dart';
 
 class _FakeAssistantRepository implements AssistantRepository {
   _FakeAssistantRepository(this._onAsk);
@@ -305,7 +307,62 @@ void main() {
     );
     expect(reply!.answer.toLowerCase(), isNot(contains('+971')));
     expect(reply.answer, contains('NMC-2026-001'));
-    expect(reply.answer.toLowerCase(), contains('phone number is not stored'));
+    expect(reply.answer, contains('NMC-2026-001'));
+    expect(reply.answer, contains('+971 56 283 4212'));
+  });
+
+  test('local assistant shows the actual saved phone, organization and location', () {
+    const attendee = MockAuthRepository.demoAttendee;
+    final phone = localAssistantReply('my mobile number?', attendee);
+    expect(phone?.answer, contains('+971 56 283 4212'));
+    expect(phone?.answer, isNot(contains('not stored')));
+    expect(phone?.actions.single.route, AppRoutes.profile);
+
+    final organization = localAssistantReply('What is my organization?', attendee);
+    expect(organization?.answer, contains('NTAM'));
+    final location = localAssistantReply('Where am I based?', attendee);
+    expect(location?.answer, contains('Dubai, UAE'));
+
+    const withoutPhone = Attendee(
+      id: 'NMC-01234',
+      fullName: 'Example Attendee',
+      email: 'test@example.com',
+      role: 'Attendee',
+      organization: 'Demo',
+      phone: 'Not provided',
+      location: 'Dubai, UAE',
+    );
+    expect(
+      localAssistantReply('What is my phone number?', withoutPhone)?.answer,
+      contains('No phone number is saved'),
+    );
+  });
+
+  test('saved items responses reflect shared account state', () async {
+    final controller = SavedItemsController(MockSavedItemsRepository());
+    addTearDown(controller.dispose);
+    await controller.loadFor('huda@example.com');
+    await controller.toggle('session', 'opening');
+    await controller.toggle('resource', 'programme');
+    final reply = localAssistantReply(
+      'What are my saved items?',
+      MockAuthRepository.demoAttendee,
+      savedItems: controller,
+    );
+    expect(reply?.answer, contains('1 saved session(s) and 1 saved resource(s)'));
+    expect(reply?.answer, contains('Opening Ceremony'));
+    expect(reply?.answer, contains('Congress Scientific Programme'));
+    expect(reply?.actions.single.route, AppRoutes.saved);
+  });
+
+  test('phone questions about congress mobile features are not intercepted', () {
+    expect(
+      localAssistantReply(
+        'What mobile applications are used at the congress?',
+        MockAuthRepository.demoAttendee,
+      ),
+      isNull,
+    );
   });
 
   test('local assistant offers agenda, badge and venue actions', () {

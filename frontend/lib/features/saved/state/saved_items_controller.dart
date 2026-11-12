@@ -111,6 +111,9 @@ class SavedItemsScope extends InheritedNotifier<SavedItemsController> {
     required super.child,
   }) : super(notifier: controller);
 
+  static SavedItemsController? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SavedItemsScope>()?.notifier;
+
   static SavedItemsController of(BuildContext context) {
     final scope =
         context.dependOnInheritedWidgetOfExactType<SavedItemsScope>();
