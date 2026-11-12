@@ -118,6 +118,10 @@ class CongressVenue {
     required this.address,
     required this.addressDisclaimer,
     required this.facilities,
+    required this.latitude,
+    required this.longitude,
+    required this.directionsUrl,
+    required this.mapMarkerLabel,
   });
 
   final String name;
@@ -125,6 +129,10 @@ class CongressVenue {
   final String address;
   final String addressDisclaimer;
   final List<VenueFacility> facilities;
+  final double latitude;
+  final double longitude;
+  final String directionsUrl;
+  final String mapMarkerLabel;
 }
 
 class CongressSession {

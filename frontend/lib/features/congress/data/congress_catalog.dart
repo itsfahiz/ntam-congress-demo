@@ -77,13 +77,18 @@ abstract final class CongressCatalog {
     ),
   ];
 
-  /// Venue copy from the assessment PDF. Not a confirmed booking.
+  /// Venue copy from the assessment PDF. Map pin is official DWTC, not a booking.
   static const venue = CongressVenue(
     name: 'Dubai International Convention & Exhibition Center',
     dateLabel: '22 - 23 May 2026',
     address: 'World Trade Centre, Dubai, United Arab Emirates',
     addressDisclaimer:
-        'Address text is copied from the assessment reference. It is not a verified pin, booking, or live map.',
+        'Address text is copied from the assessment reference. The map pin is the official Dubai World Trade Centre location, not a confirmed congress booking.',
+    latitude: 25.2230544,
+    longitude: 55.2885219,
+    directionsUrl:
+        'https://www.google.com/maps/search/?api=1&query=25.2230544%2C55.2885219',
+    mapMarkerLabel: 'Dubai World Trade Centre',
     facilities: [
       VenueFacility(icon: Icons.wifi_rounded, label: 'Free Wi-Fi'),
       VenueFacility(icon: Icons.local_parking_rounded, label: 'Parking'),

@@ -3,12 +3,26 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
-import '../../core/widgets/demo_limitation_sheet.dart';
 import '../congress/data/congress_catalog.dart';
-import 'widgets/static_venue_map.dart';
+import 'venue_directions.dart';
+import 'widgets/venue_map.dart';
 
 class VenueScreen extends StatelessWidget {
-  const VenueScreen({super.key});
+  const VenueScreen({super.key, this.launchDirections});
+
+  /// Production uses [launchVenueDirections]. Tests inject a fake.
+  final Future<bool> Function(Uri uri)? launchDirections;
+
+  Future<void> _openDirections(BuildContext context) async {
+    final venue = CongressCatalog.venue;
+    final launcher = launchDirections ?? launchVenueDirections;
+    final opened = await launcher(Uri.parse(venue.directionsUrl));
+    if (!context.mounted) return;
+    if (opened) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open Google Maps.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +43,7 @@ class VenueScreen extends StatelessWidget {
         outlined: true,
         onPressed: () => context.pop(),
       ),
-      trailing: _DirectionsButton(
-        onPressed: () => showDemoLimitationSheet(
-          context,
-          title: 'Directions are not connected',
-          message:
-              '${venue.addressDisclaimer} This app does not open a maps provider.',
-        ),
-      ),
+      trailing: _DirectionsButton(onPressed: () => _openDirections(context)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
@@ -80,6 +87,15 @@ class VenueScreen extends StatelessWidget {
                           height: 1.3,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        venue.addressDisclaimer,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -87,7 +103,7 @@ class VenueScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const StaticVenueMap(),
+          const VenueMap(),
           const SizedBox(height: 14),
           _WhiteCard(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),

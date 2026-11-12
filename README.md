@@ -24,7 +24,7 @@ The API is documented in [`backend/README.md`](backend/README.md). On Render, se
 | Name Tag QR | **Real.** HMAC-signed verification URL from `GET /api/me/badge`. Public `GET /badge/verify`. |
 | Congress AI | **Real.** Gemini answers grounded in retrieved catalogue records, with source chips. |
 | Google / Apple / forgot-password | **UI only.** Buttons explain they are not connected. Forgot-password does not send email. |
-| Resources, exhibitors, venue map | **Illustrative.** On-device summaries, demo booths, static map drawing. |
+| Resources, exhibitors | **Illustrative.** On-device summaries and demo booths. The Venue map is a live OpenStreetMap view of DWTC; address copy remains catalogue text, not a confirmed booking. |
 | Organizer tools | **Not in scope.** No poll authoring, moderation, or certificate issuance. |
 
 Widget tests inject in-memory repositories. `flutter run` / release builds do **not** fall back to that fixture. If `SUPABASE_ANON_KEY` is missing, sign-in is refused.
@@ -63,7 +63,7 @@ backend/
 - **Home:** greeting from the signed-in attendee, search, track filter, featured event, **Congress AI** entry, Quick Access, upcoming sessions from the catalogue.
 - **Agenda / Speakers:** day and track filters, session details, in-memory bookmarks/favorites for the current screen only.
 - **Name Tag:** signed-in attendee badge. QR encodes `GET /badge/verify?b=<badgeId>&s=<hmac>`. Print is not connected.
-- **Venue:** catalogue name/address, static map preview, facility tiles. Directions do not open a maps app.
+- **Venue:** catalogue name/address/facilities, interactive OpenStreetMap pin at Dubai World Trade Centre, Get Directions via the official DWTC Google Maps URL.
 - **Live Voting:** loads `GET /api/polls` (three active polls), Previous/Next, one submit per poll via `POST /api/polls/:pollId/vote`. Results are server counts. Duplicate votes return `409`.
 - **Ask Q&A:** `GET`/`POST /api/questions`; like/unlike; list/add replies. Popular ranks by real `likeCount`. Answered uses the backend `answered` flag (attendee replies do not set it).
 - **Congress AI:** `POST /api/assistant/ask`. Lexical retrieval over the catalogue (sessions, speakers, days), Gemini grounded on those records, source chips. Out-of-catalogue questions skip Gemini.
@@ -198,7 +198,7 @@ API tests cover catalog, retrieval, assistant grounding, polls, questions, and b
 - Programme content is a **seeded assessment catalogue**, not live event operations data. Speaker bios and Ahmed’s country/title are illustrative.
 - Google/Apple sign-in and password reset are not connected.
 - Agenda bookmarks, speaker favorites, and resource bookmarks are screen-local only.
-- Venue address text is copied from the assessment PDF. It is not a verified pin or booking. The map is a static drawing.
+- Venue address text is copied from the assessment PDF. The in-app map pin is the official Dubai World Trade Centre location (OpenStreetMap tiles), not a confirmed congress booking. Get Directions opens the official DWTC Google Maps destination.
 - Resources are on-device summaries. No PDFs, decks, or videos are bundled; tapping a card does not download a file.
 - Exhibitors are illustrative demo booths, not an official directory.
 - Profile Saved / Certificates are unsupported (shown as 00). Phone is stored as “Not provided”; location is catalogue copy (`Dubai, UAE`).

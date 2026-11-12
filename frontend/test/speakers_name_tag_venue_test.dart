@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:ntam_congress_demo/app/congress_app.dart';
+import 'package:ntam_congress_demo/app/theme/app_theme.dart';
 import 'package:ntam_congress_demo/features/name_tag/data/badge_qr_repository.dart';
 import 'package:ntam_congress_demo/features/name_tag/data/mock_badge_qr_repository.dart';
+import 'package:ntam_congress_demo/features/venue/venue_screen.dart';
+import 'package:ntam_congress_demo/features/venue/widgets/venue_map.dart';
 
 import 'support/home_shortcuts.dart';
 
@@ -194,7 +197,12 @@ void main() {
     expect(find.text('Demo badge'), findsNothing);
   });
 
-  testWidgets('Venue shows reference copy and demo disclaimer', (tester) async {
+  testWidgets('Venue shows catalogue copy, DWTC pin and OSM attribution', (
+    tester,
+  ) async {
+    debugVenueTileProvider = TransparentVenueTileProvider();
+    addTearDown(() => debugVenueTileProvider = null);
+
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
     await tapHomeShortcut(tester, 'Venue');
@@ -207,9 +215,71 @@ void main() {
       find.text('World Trade Centre, Dubai, United Arab Emirates'),
       findsOneWidget,
     );
+    expect(find.text('Dubai World Trade Centre'), findsOneWidget);
+    expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Free Wi-Fi'),
+      240,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
     expect(find.text('Free Wi-Fi'), findsOneWidget);
+    expect(
+      find.textContaining('not a confirmed congress booking'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Get Directions opens the official DWTC Google Maps URL', (
+    tester,
+  ) async {
+    debugVenueTileProvider = TransparentVenueTileProvider();
+    addTearDown(() => debugVenueTileProvider = null);
+
+    Uri? launched;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.congress(),
+        home: VenueScreen(
+          launchDirections: (uri) async {
+            launched = uri;
+            return true;
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
     await tester.tap(find.byTooltip('Directions'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('not a verified pin'), findsOneWidget);
+    await tester.pump();
+
+    expect(
+      launched?.toString(),
+      'https://www.google.com/maps/search/?api=1&query=25.2230544%2C55.2885219',
+    );
+    expect(find.text('Could not open Google Maps.'), findsNothing);
+  });
+
+  testWidgets('Get Directions shows a message when launch fails', (
+    tester,
+  ) async {
+    debugVenueTileProvider = TransparentVenueTileProvider();
+    addTearDown(() => debugVenueTileProvider = null);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.congress(),
+        home: VenueScreen(launchDirections: (_) async => false),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('Directions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Could not open Google Maps.'), findsOneWidget);
   });
 }

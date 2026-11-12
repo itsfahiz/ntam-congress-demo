@@ -60,6 +60,19 @@ void main() {
     expect(matches.first.id, 'pediatric-guide');
   });
 
+  test('venue map pin uses the official DWTC coordinates', () {
+    final venue = CongressCatalog.venue;
+    expect(venue.latitude, 25.2230544);
+    expect(venue.longitude, 55.2885219);
+    expect(venue.mapMarkerLabel, 'Dubai World Trade Centre');
+    expect(
+      venue.directionsUrl,
+      'https://www.google.com/maps/search/?api=1&query=25.2230544%2C55.2885219',
+    );
+    expect(venue.address, 'World Trade Centre, Dubai, United Arab Emirates');
+    expect(venue.addressDisclaimer, contains('not a confirmed congress booking'));
+  });
+
   test('every Quick Access shortcut uses a known app route', () {
     const known = {
       AppRoutes.agenda,
