@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.fromLTRB(20, 16, 20, 32),
                         sliver: SliverToBoxAdapter(
                           child: Text(
-                            'No sessions match your search or filter.',
+                            'No Day 1 sessions found.',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 14,

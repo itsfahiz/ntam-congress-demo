@@ -83,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Resources search and demo summary open locally', (tester) async {
+  testWidgets('Resources search filters the actual demo media catalogue', (tester) async {
     await pumpPhoneApp(tester);
     await signInAsDemo(tester);
 
@@ -99,11 +99,8 @@ void main() {
     expect(find.text('Congress Scientific Programme'), findsNothing);
     expect(find.text('Keynote Presentation Slides'), findsNothing);
 
-    await tester.tap(find.text('Pediatric Nutrition Guide'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('On-device summary'), findsOneWidget);
-    expect(find.textContaining('Dr. Sarah Johnson'), findsOneWidget);
+    expect(find.text('Pediatric Nutrition Guide'), findsOneWidget);
+    expect(find.byTooltip('Download'), findsOneWidget);
   });
 
   testWidgets('Resources folder icon browses existing catalog groups', (

@@ -321,9 +321,9 @@ class CongressResource {
   };
 
   String get availabilityLabel => switch (kind) {
-    ResourceKind.video => 'Preview only',
-    ResourceKind.pdf => 'On-device summary',
-    ResourceKind.slides => 'On-device outline',
+    ResourceKind.video => 'Demo MP4 · playable',
+    ResourceKind.pdf => 'Original demo PDF · downloadable',
+    ResourceKind.slides => 'Original demo slides · PDF',
   };
 }
 

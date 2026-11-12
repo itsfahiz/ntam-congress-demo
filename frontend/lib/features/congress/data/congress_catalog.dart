@@ -407,7 +407,7 @@ abstract final class CongressCatalog {
       CongressResource(
         id: 'pediatric-guide',
         title: 'Pediatric Nutrition Guide',
-        subtitle: 'Clinical reference material',
+        subtitle: 'Illustrative discussion prompts (demo PDF)',
         kind: ResourceKind.pdf,
         body:
             'Tied to Future of Pediatric Nutrition with ${speakerById(sarahId).fullName}.\n\n'
@@ -432,10 +432,10 @@ abstract final class CongressCatalog {
       CongressResource(
         id: 'session-recap',
         title: 'Day 1 Session Recap',
-        subtitle: 'Session highlights',
+        subtitle: 'Demo recap title card (MP4)',
         kind: ResourceKind.video,
         body:
-            'No video file is included.\n\n'
+            'A short original demo MP4 is included. It is a title-card preview, not congress footage.\n\n'
             'Day 1 outline:\n'
             '${sessionsOn(CongressDay.day1).map((session) => '• ${session.timeLabel} ${session.title} — ${speakerName(session)}').join('\n')}',
       ),

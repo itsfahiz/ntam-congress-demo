@@ -103,10 +103,10 @@ test('retrieve returns nothing when the catalog has no match', () => {
   assert.deepEqual(records, []);
 });
 
-test('retrieval finds grounded resources and actual preview-only availability', () => {
+test('retrieval finds grounded downloadable demo resource availability', () => {
   const records = retrieve('What is in the Pediatric Nutrition Guide PDF?');
   const resource = records.find((record) =>
     record.type === 'resource' && record.id === 'pediatric-guide');
   assert.ok(resource && resource.type === 'resource');
-  assert.match(resource.payload.availability, /no downloadable PDF/i);
+  assert.match(resource.payload.availability, /available for download/i);
 });
