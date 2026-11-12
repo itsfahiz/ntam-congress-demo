@@ -127,6 +127,8 @@ void main() {
     expect(find.text('01'), findsOneWidget);
     await tester.tap(find.text('Saved'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Speakers (1)'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Speakers (1)'));
     await tester.pumpAndSettle();
     expect(find.text('Dr. Sarah Johnson'), findsOneWidget);
