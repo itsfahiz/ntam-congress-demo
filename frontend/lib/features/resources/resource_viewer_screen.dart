@@ -57,8 +57,11 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
   /// The embedded player is created on demand to keep navigation/tests light.
   void _watchVideo() {
     final resource = _resource;
-    if (resource == null || resource.kind != ResourceKind.video ||
-        _youtubeController != null) return;
+    if (resource == null ||
+        resource.kind != ResourceKind.video ||
+        _youtubeController != null) {
+      return;
+    }
     final videoId = ResourceVideoLinks.videoIdForResource(resource.id);
     if (videoId == null) {
       setState(() => _error = 'This video is unavailable.');
