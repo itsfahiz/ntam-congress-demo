@@ -40,7 +40,7 @@ void main() {
       (resource) => resource.kind == ResourceKind.video,
     );
     expect(() => ResourceFileService.filename(video), throwsUnsupportedError);
-    await expectLater(ResourceFileService.bytes(video), throwsUnsupportedError);
+    expect(() => ResourceFileService.bytes(video), throwsUnsupportedError);
     await expectLater(DemoResourcePdf.build(video), throwsArgumentError);
   });
 
