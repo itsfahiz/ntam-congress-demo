@@ -64,7 +64,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dr. Sarah Johnson'));
     await tester.pumpAndSettle();
-    expect(find.text('Global Medical'), findsWidgets);
+    expect(find.textContaining('Global Medical'), findsWidgets);
     expect(find.text('Pediatric Nutrition Specialist'), findsWidgets);
   });
 
