@@ -68,8 +68,10 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('File downloaded for offline access in the app.')));
     } catch (_) {
-      if (mounted) setState(() =>
-          _error = 'Could not save the file. Check your device storage.');
+      if (mounted) {
+        setState(() =>
+            _error = 'Could not save the file. Check your device storage.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -82,8 +84,9 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     try {
       await ResourceFileService.export(resource);
     } catch (_) {
-      if (mounted) setState(() =>
-          _error = 'Could not export this file. Try again.');
+      if (mounted) {
+        setState(() => _error = 'Could not export this file. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -95,8 +98,11 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     try {
       await SavedItemsScope.of(context).toggle('resource', resource.id);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
     }
   }
 
