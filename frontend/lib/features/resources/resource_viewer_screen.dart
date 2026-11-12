@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:video_player/video_player.dart';
 
@@ -25,7 +24,6 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
   bool _videoLoaded = false;
   bool _busy = false;
   String? _error;
-  String? _offlinePath;
 
   CongressResource? get _resource {
     for (final resource in CongressCatalog.resources) {
@@ -59,38 +57,17 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     super.dispose();
   }
 
-  Future<void> _save() async {
+  Future<void> _download() async {
     final resource = _resource;
     if (resource == null || _busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      final location = await ResourceFileService.download(resource);
-      if (!mounted) return;
-      setState(() => _offlinePath = location);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved to $location')),
-      );
-    } on PlatformException catch (error) {
-      if (!mounted) return;
-      setState(() => _error = error.message ?? 'Download failed.');
-    } catch (_) {
-      if (mounted) {
-        setState(() => _error = 'Could not download this resource.');
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _share() async {
-    final resource = _resource;
-    if (resource == null || _busy) return;
-    setState(() { _busy = true; _error = null; });
-    try {
+      // Export is already verified on Android. Let users choose Files/Drive/etc.
       await ResourceFileService.export(resource);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Could not export this file. Try again.');
+        setState(() => _error =
+            'Could not open Save/Share. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -147,21 +124,11 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                         ? 'Saved' : 'Save'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: _busy ? null : _save,
+                    onPressed: _busy ? null : _download,
                     icon: const Icon(Icons.download_rounded),
                     label: const Text('Download'),
                   ),
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _share,
-                    icon: const Icon(Icons.ios_share_rounded),
-                    label: const Text('Export'),
-                  ),
                 ]),
-                if (_offlinePath != null) const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Text('Saved in device Downloads. Open Files → Downloads → NTAM Congress.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                ),
                 if (_error != null) Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(_error!, style: const TextStyle(color: Colors.red))),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/app_routes.dart';
@@ -58,18 +57,12 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
   Future<void> _download(CongressResource resource) async {
     try {
-      final location = await ResourceFileService.download(resource);
+      // One consistent file action: Android's Share/Save-to-Files chooser.
+      await ResourceFileService.export(resource);
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved to $location')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      final message = error is PlatformException
-          ? error.message ?? 'Download failed. Try Export instead.'
-          : 'Could not download. Try Export from the viewer.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        const SnackBar(content: Text('Could not open Save/Share. Please try again.')),
       );
     }
   }
@@ -109,7 +102,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
       hero: const CongressHeroBanner(
         icon: Icons.cloud_download_rounded,
         title: 'Congress Library',
-        subtitle: 'Open, save and export original demo media',
+        subtitle: 'Open, bookmark and download demo media',
         padding: EdgeInsets.fromLTRB(18, 22, 18, 22),
         titleSize: 22,
         titleWeight: FontWeight.w900,

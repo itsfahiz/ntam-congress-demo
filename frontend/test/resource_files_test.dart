@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 import 'package:ntam_congress_demo/features/congress/data/congress_catalog.dart';
 import 'package:ntam_congress_demo/features/congress/domain/congress_models.dart';
@@ -42,36 +40,12 @@ void main() {
     await expectLater(DemoResourcePdf.build(video), throwsArgumentError);
   });
 
-  test('Android Download transfers actual resource bytes to the native bridge',
-      () async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    final messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    const channel = MethodChannel('ntam.congress/downloads');
-    addTearDown(() {
-      messenger.setMockMethodCallHandler(channel, null);
-      debugDefaultTargetPlatformOverride = null;
-    });
-
-    var receivedCount = 0;
-    messenger.setMockMethodCallHandler(channel, (call) async {
-      expect(call.method, 'saveToDownloads');
-      final args = Map<String, Object?>.from(call.arguments as Map);
-      final name = args['filename'] as String;
-      final bytes = args['bytes'] as Uint8List;
-      expect(bytes.length, greaterThan(500));
-      expect(name, startsWith('ntam-'));
-      expect(args['mimeType'], 'application/pdf');
-      receivedCount++;
-      return 'Downloads/NTAM Congress/$name';
-    });
-
+  test('download resource retains a usable file name and PDF payload', () async {
     final programme = CongressCatalog.resources.singleWhere(
-      (item) => item.id == 'programme',
+      (resource) => resource.id == 'programme',
     );
-    final location = await ResourceFileService.download(programme);
-    expect(location, 'Downloads/NTAM Congress/ntam-programme.pdf');
-    expect(receivedCount, 1);
+    expect(ResourceFileService.filename(programme), 'ntam-programme.pdf');
+    final bytes = await ResourceFileService.bytes(programme);
+    expect(ascii.decode(bytes.take(4).toList()), '%PDF');
   });
-
 }
