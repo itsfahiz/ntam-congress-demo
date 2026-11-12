@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -9,8 +8,9 @@ import '../congress/domain/congress_models.dart';
 import '../saved/state/saved_items_controller.dart';
 import 'data/demo_resource_pdf.dart';
 import 'data/resource_file_service.dart';
+import 'data/resource_video_links.dart';
 
-/// Standalone viewer, shared by Resources, Saved Items, and global Search.
+/// Shared destination from Library, Search and Saved Items.
 class ResourceViewerScreen extends StatefulWidget {
   const ResourceViewerScreen({super.key, required this.resourceId});
   final String resourceId;
@@ -20,8 +20,6 @@ class ResourceViewerScreen extends StatefulWidget {
 }
 
 class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
-  VideoPlayerController? _video;
-  bool _videoLoaded = false;
   bool _busy = false;
   String? _error;
 
@@ -32,42 +30,35 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     return null;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (_resource?.kind == ResourceKind.video) _initVideo();
-  }
-
-  Future<void> _initVideo() async {
-    final controller =
-        VideoPlayerController.asset('assets/media/day1_demo_recap.mp4');
-    _video = controller;
-    try {
-      await controller.initialize();
-      await controller.setLooping(true);
-      if (mounted) setState(() => _videoLoaded = true);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Demo video cannot be played on this device.');
-    }
-  }
-
-  @override
-  void dispose() {
-    _video?.dispose();
-    super.dispose();
-  }
-
   Future<void> _download() async {
     final resource = _resource;
-    if (resource == null || _busy) return;
+    if (resource == null || _busy || resource.kind == ResourceKind.video) return;
     setState(() { _busy = true; _error = null; });
     try {
-      // Export is already verified on Android. Let users choose Files/Drive/etc.
       await ResourceFileService.export(resource);
     } catch (_) {
       if (mounted) {
+        setState(() => _error = 'Could not open Save/Share. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _watchVideo() async {
+    final resource = _resource;
+    if (resource == null || _busy || resource.kind != ResourceKind.video) return;
+    setState(() { _busy = true; _error = null; });
+    try {
+      final opened = await ResourceVideoLinks.watch(resource.id);
+      if (!opened && mounted) {
         setState(() => _error =
-            'Could not open Save/Share. Please try again.');
+            'Unable to open YouTube. Check your browser or internet connection.');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error =
+            'Unable to open YouTube. Check your browser or internet connection.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -97,9 +88,10 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
         body: const Center(child: Text('Resource not found.')),
       );
     }
+    final externalVideo = resource.kind == ResourceKind.video;
     final saved = SavedItemsScope.of(context);
     return CongressFeatureScaffold(
-      title: resource.kind == ResourceKind.video ? 'Video' : 'Document',
+      title: externalVideo ? 'Educational Video' : 'Document',
       titleAlign: TextAlign.start,
       body: Column(
         children: [
@@ -111,9 +103,12 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                 Text(resource.title, style: const TextStyle(
                   fontWeight: FontWeight.w900, fontSize: 20)),
                 const SizedBox(height: 4),
-                const Text(
-                  'Original illustrative assessment material — not official congress media.',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                Text(
+                  externalVideo
+                      ? 'Stanford University · External course trailer. Not congress footage.'
+                      : 'Original illustrative assessment material — not official congress media.',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 12)),
                 const SizedBox(height: 10),
                 Wrap(spacing: 8, runSpacing: 8, children: [
                   OutlinedButton.icon(
@@ -124,22 +119,26 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                         ? 'Saved' : 'Save'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: _busy ? null : _download,
-                    icon: const Icon(Icons.download_rounded),
-                    label: const Text('Download'),
+                    onPressed: _busy
+                        ? null : externalVideo ? _watchVideo : _download,
+                    icon: Icon(externalVideo
+                        ? Icons.play_circle_outline_rounded
+                        : Icons.download_rounded),
+                    label: Text(externalVideo ? 'Watch Video' : 'Download'),
                   ),
                 ]),
-                if (_error != null) Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(_error!, style: const TextStyle(color: Colors.red))),
                 if (_busy) const LinearProgressIndicator(),
               ],
             ),
           ),
           const Divider(height: 1),
           Expanded(
-            child: resource.kind == ResourceKind.video
-                ? _videoPlayer(resource)
+            child: externalVideo
+                ? _externalVideoInfo(resource)
                 : PdfPreview(
                     key: ValueKey(resource.id),
                     build: (_) => DemoResourcePdf.build(resource),
@@ -155,162 +154,50 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     );
   }
 
-  String _time(Duration duration) {
-    final minutes = duration.inMinutes.toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
-
-  Widget _videoPlayer(CongressResource resource) {
-    final controller = _video;
-    if (controller == null || !_videoLoaded) {
-      return Center(
-        child: _error == null
-            ? const CircularProgressIndicator()
-            : const Text('Video preview unavailable.'),
-      );
-    }
+  Widget _externalVideoInfo(CongressResource resource) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            height: 180,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF052453), Color(0xFF12549C)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.play_circle_fill_rounded,
+                    size: 70, color: Colors.white),
+                SizedBox(height: 12),
+                Text('Stanford University',
+                    style: TextStyle(color: Colors.white, fontSize: 19,
+                        fontWeight: FontWeight.w800)),
+                SizedBox(height: 6),
+                Text('Introduction to Food & Health · Course Trailer',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text('External educational resource',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Text(resource.body,
+              style: const TextStyle(height: 1.5, fontSize: 14,
+                  color: AppColors.textSecondary)),
           const SizedBox(height: 14),
-          AspectRatio(
-            aspectRatio: controller.value.aspectRatio,
-            child: AnimatedBuilder(
-              animation: controller,
-              builder: (context, _) {
-                final value = controller.value;
-                final durationMs = value.duration.inMilliseconds;
-                final progress = durationMs > 0
-                    ? value.position.inMilliseconds / durationMs
-                    : 0.0;
-                final caption = switch (progress) {
-                  < 0.25 => 'Opening Ceremony',
-                  < 0.5 => 'Welcome & Introduction',
-                  < 0.75 => 'Pediatric Nutrition',
-                  _ => 'Clinical Research Highlights',
-                };
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    VideoPlayer(controller),
-                    Positioned(
-                      left: 10,
-                      right: 10,
-                      bottom: 8,
-                      child: IgnorePointer(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xDD052453),
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.auto_awesome,
-                                  color: Colors.cyanAccent, size: 16),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(caption,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                    )),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          AnimatedBuilder(
-            animation: controller,
-            builder: (context, _) {
-              final value = controller.value;
-              final duration = value.duration;
-              final position = value.position;
-              final maximum = duration.inMilliseconds > 0
-                  ? duration.inMilliseconds.toDouble()
-                  : 1.0;
-              final progress = position.inMilliseconds
-                  .toDouble()
-                  .clamp(0.0, maximum);
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                    child: Row(
-                      children: [
-                        IconButton.filled(
-                          tooltip: value.isPlaying ? 'Pause video' : 'Play video',
-                          icon: Icon(value.isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded),
-                          onPressed: () async {
-                            if (value.isPlaying) {
-                              await controller.pause();
-                            } else {
-                              await controller.play();
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Slider(
-                            value: progress,
-                            min: 0,
-                            max: maximum,
-                            onChanged: (next) async {
-                              await controller.seekTo(
-                                Duration(milliseconds: next.round()),
-                              );
-                            },
-                          ),
-                        ),
-                        Text('${_time(position)} / ${_time(duration)}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (value.isPlaying)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        'Playing short illustrative recap clip',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Text(
-              'This is an original demonstration title-card clip, '
-              'not a recording of actual congress sessions.\n\n'
-              '${resource.body}',
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ),
+          const Text(
+            'Tap Watch Video to open the original trailer on YouTube. '
+            'An internet connection is required. The video is hosted by '
+            'its publisher and is not downloaded or repackaged by this demo.',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         ],
       ),
     );
