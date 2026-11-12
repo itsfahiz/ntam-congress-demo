@@ -143,7 +143,16 @@ export async function askAuthenticatedAssistant(
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const response = await callModel({ contents, round });
-    const calls = response.calls.slice(0, MAX_CALLS_PER_ROUND);
+    // Never silently drop requested function responses: Gemini expects one
+    // response for every call in the model's previous turn.
+    if (response.calls.length > MAX_CALLS_PER_ROUND) {
+      return {
+        answer: 'That request needs too many lookups. Please ask a narrower question.',
+        grounded: false,
+        sources: uniqueSources(allSources),
+      };
+    }
+    const calls = response.calls;
     if (calls.length === 0) {
       return {
         answer: verifiedEvidence && response.text ? response.text : UNKNOWN,
