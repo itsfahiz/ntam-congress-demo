@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../app/app_routes.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_background.dart';
-import '../../core/widgets/light_sheet.dart';
 import '../assistant/widgets/congress_ai_home_entry.dart';
 import '../auth/domain/attendee.dart';
 import '../auth/state/auth_controller.dart';
@@ -25,119 +24,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _searchController = TextEditingController();
-  SessionTrack? _trackFilter;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  List<CongressSession> get _visibleSessions {
-    final query = _searchController.text.trim().toLowerCase();
-    return CongressCatalog.filterSessions(
-      day: CongressDay.day1,
-      track: _trackFilter,
-      query: query,
-    );
-  }
-
-  Future<void> _pickFilter() async {
-    final result = await showModalBottomSheet<_FilterChoice>(
-      context: context,
-      backgroundColor: AppColors.card,
-      showDragHandle: true,
-      builder: (context) {
-        return LightSheet(
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(24, 4, 24, 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Filter upcoming sessions',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-                for (final option in _sessionFilterOptions)
-                  ListTile(
-                    title: Text(option.label),
-                    trailing: _trackFilter == option.track
-                        ? const Icon(Icons.check, color: AppColors.accentBlue)
-                        : null,
-                    onTap: () => Navigator.pop(context, option),
-                  ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    if (!mounted || result == null) return;
-    setState(() => _trackFilter = result.track);
-  }
-
-  Future<void> _showNotifications() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.card,
-      showDragHandle: true,
-      builder: (context) {
-        return LightSheet(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                    child: Text(
-                      'Congress notices',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  for (final notice in HomeMockData.notifications)
-                    ListTile(
-                      leading: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.iconBlue,
-                      ),
-                      title: Text(notice.title),
-                      subtitle: Text(notice.body),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.push(notice.route);
-                      },
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  void _openSearch() => context.push(AppRoutes.search);
+  void _openNotifications() => context.push(AppRoutes.notifications);
 
   @override
   Widget build(BuildContext context) {
     final attendee = AuthScope.of(context).attendee;
-    final sessions = _visibleSessions;
+    final sessions = CongressCatalog.sessions
+        .where((session) => session.day == CongressDay.day1)
+        .toList();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -162,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: _HomeHeader(
                           attendee: attendee,
                           hasNotices: HomeMockData.notifications.isNotEmpty,
-                          onBellPressed: _showNotifications,
+                          onBellPressed: _openNotifications,
                         ),
                       ),
                     ),
@@ -170,10 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                       sliver: SliverToBoxAdapter(
                         child: HomeSearchBar(
-                          controller: _searchController,
-                          onChanged: (_) => setState(() {}),
-                          onFilterPressed: _pickFilter,
-                          filterActive: _trackFilter != null,
+                          onSearchTap: _openSearch,
+                          onFilterPressed: _openSearch,
+                          filterActive: false,
                         ),
                       ),
                     ),
@@ -207,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                       sliver: SliverToBoxAdapter(
                         child: _SectionHeader(
-                          title: 'Upcoming Sessions',
+                          title: 'Day 1 Programme',
                           actionLabel: 'View All',
                           onAction: () => context.push(AppRoutes.agenda),
                         ),

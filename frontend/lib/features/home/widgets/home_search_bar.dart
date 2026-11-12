@@ -5,14 +5,16 @@ import '../../../app/theme/app_colors.dart';
 class HomeSearchBar extends StatefulWidget {
   const HomeSearchBar({
     super.key,
-    required this.controller,
-    required this.onChanged,
+    this.controller,
+    this.onChanged,
     required this.onFilterPressed,
+    this.onSearchTap,
     required this.filterActive,
   });
 
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onSearchTap;
   final VoidCallback onFilterPressed;
   final bool filterActive;
 
@@ -36,8 +38,8 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
   }
 
   void _clear() {
-    widget.controller.clear();
-    widget.onChanged('');
+    widget.controller?.clear();
+    widget.onChanged?.call('');
   }
 
   @override
@@ -67,6 +69,8 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
           Expanded(
             child: TextField(
               controller: widget.controller,
+              readOnly: widget.onSearchTap != null,
+              onTap: widget.onSearchTap,
               focusNode: _focusNode,
               onChanged: widget.onChanged,
               textInputAction: TextInputAction.search,
@@ -91,22 +95,18 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
               ),
             ),
           ),
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: widget.controller,
-            builder: (context, value, _) {
-              if (value.text.isEmpty) return const SizedBox(width: 4);
-              return IconButton(
-                onPressed: _clear,
-                tooltip: 'Clear search',
-                visualDensity: VisualDensity.compact,
-                icon: Icon(
-                  Icons.close_rounded,
-                  size: 18,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              );
-            },
-          ),
+          if (widget.controller != null)
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: widget.controller!,
+              builder: (context, value, _) {
+                if (value.text.isEmpty) return const SizedBox(width: 4);
+                return IconButton(
+                  onPressed: _clear,
+                  tooltip: 'Clear search',
+                  icon: const Icon(Icons.close_rounded, color: Colors.white),
+                );
+              },
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 6, 6, 6),
             child: Tooltip(

@@ -5,17 +5,17 @@ import '../domain/home_models.dart';
 abstract final class HomeMockData {
   static const notifications = <HomeNotification>[
     HomeNotification(
-      title: 'Opening Ceremony starts soon',
-      body: 'Main Auditorium · 08:30 AM',
+      title: 'Opening Ceremony — programme information',
+      body: 'Day 1 · Main Auditorium · 08:30 AM',
       route: AppRoutes.agenda,
     ),
     HomeNotification(
-      title: 'Live Q&A is open',
-      body: 'Submit a question for the morning keynote.',
+      title: 'Congress Q&A',
+      body: 'View and submit questions in the congress discussion.',
       route: AppRoutes.qa,
     ),
     HomeNotification(
-      title: 'New resource added',
+      title: 'Programme resource available',
       body: 'Congress Scientific Programme is now in the library.',
       route: AppRoutes.resources,
     ),

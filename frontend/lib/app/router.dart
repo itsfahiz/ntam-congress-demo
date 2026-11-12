@@ -10,6 +10,8 @@ import '../features/auth/splash/auth_splash_screen.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/exhibitors/exhibitors_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/home/search_screen.dart';
+import '../features/home/notifications_screen.dart';
 import '../features/name_tag/name_tag_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/qa/qa_screen.dart';
@@ -97,6 +99,16 @@ GoRouter createRouter(AuthController authController) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        name: 'search',
+        builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.quickAccess,

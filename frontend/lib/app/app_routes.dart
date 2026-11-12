@@ -3,6 +3,8 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const home = '/home';
+  static const search = '/search';
+  static const notifications = '/notifications';
   static const profile = '/profile';
   static const quickAccess = '/quick-access';
   static const agenda = '/agenda';
