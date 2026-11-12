@@ -305,9 +305,7 @@ void main() {
       "What's my number?",
       MockAuthRepository.demoAttendee,
     );
-    expect(reply!.answer.toLowerCase(), isNot(contains('+971')));
-    expect(reply.answer, contains('NMC-2026-001'));
-    expect(reply.answer, contains('NMC-2026-001'));
+    expect(reply!.answer, contains('NMC-2026-001'));
     expect(reply.answer, contains('+971 56 283 4212'));
   });
 
