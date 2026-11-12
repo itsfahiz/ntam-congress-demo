@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
@@ -22,12 +23,19 @@ class ResourceViewerScreen extends StatefulWidget {
 class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
   bool _busy = false;
   String? _error;
+  YoutubePlayerController? _youtubeController;
 
   CongressResource? get _resource {
     for (final resource in CongressCatalog.resources) {
       if (resource.id == widget.resourceId) return resource;
     }
     return null;
+  }
+
+  @override
+  void dispose() {
+    _youtubeController?.close();
+    super.dispose();
   }
 
   Future<void> _download() async {
@@ -45,23 +53,37 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     }
   }
 
-  Future<void> _watchVideo() async {
+  /// Starts the official YouTube iframe *inside* this screen.
+  /// The embedded player is created on demand to keep navigation/tests light.
+  void _watchVideo() {
     final resource = _resource;
-    if (resource == null || _busy || resource.kind != ResourceKind.video) return;
-    setState(() { _busy = true; _error = null; });
+    if (resource == null || resource.kind != ResourceKind.video ||
+        _youtubeController != null) return;
+    final videoId = ResourceVideoLinks.videoIdForResource(resource.id);
+    if (videoId == null) {
+      setState(() => _error = 'This video is unavailable.');
+      return;
+    }
     try {
-      final opened = await ResourceVideoLinks.watch(resource.id);
-      if (!opened && mounted) {
-        setState(() => _error =
-            'Unable to open YouTube. Check your browser or internet connection.');
-      }
+      final controller = YoutubePlayerController.fromVideoId(
+        videoId: videoId,
+        autoPlay: true,
+        params: const YoutubePlayerParams(
+          showControls: true,
+          showFullscreenButton: true,
+          playsInline: true,
+          privacyEnhancedMode: true,
+        ),
+      );
+      setState(() {
+        _youtubeController = controller;
+        _error = null;
+      });
     } catch (_) {
       if (mounted) {
         setState(() => _error =
-            'Unable to open YouTube. Check your browser or internet connection.');
+            'The embedded player could not start. Please try again.');
       }
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -119,12 +141,15 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                         ? 'Saved' : 'Save'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: _busy
-                        ? null : externalVideo ? _watchVideo : _download,
+                    onPressed: externalVideo
+                        ? (_youtubeController == null ? _watchVideo : null)
+                        : (_busy ? null : _download),
                     icon: Icon(externalVideo
                         ? Icons.play_circle_outline_rounded
                         : Icons.download_rounded),
-                    label: Text(externalVideo ? 'Watch Video' : 'Download'),
+                    label: Text(externalVideo ?
+                        (_youtubeController == null ? 'Play Video' : 'Playing below')
+                        : 'Download'),
                   ),
                 ]),
                 if (_error != null)
@@ -160,7 +185,18 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
+          if (_youtubeController case final controller?)
+            YoutubePlayer(
+              key: const ValueKey('stanford-embedded-youtube-player'),
+              controller: controller,
+              aspectRatio: 16 / 9,
+            )
+          else
+          InkWell(
+            key: const ValueKey('stanford-inline-video-play'),
+            onTap: _watchVideo,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
             height: 180,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -183,6 +219,7 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                     style: TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
+            ),
           ),
           const SizedBox(height: 18),
           const Text('External educational resource',
@@ -194,9 +231,10 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                   color: AppColors.textSecondary)),
           const SizedBox(height: 14),
           const Text(
-            'Tap Watch Video to open the original trailer on YouTube. '
-            'An internet connection is required. The video is hosted by '
-            'its publisher and is not downloaded or repackaged by this demo.',
+            'Tap Play Video to stream the Stanford trailer inside this app. '
+            'Internet is required. Playback and fullscreen controls are built into '
+            'the embedded YouTube player. If YouTube restricts embedding, '
+            'the video may be unavailable; this app does not rehost it.',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         ],
       ),

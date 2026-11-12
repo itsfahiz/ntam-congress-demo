@@ -91,3 +91,6 @@ Stanford Introduction to Food & Health (official course trailer): https://www.yo
 - The saved resource ID remains `session-recap` so existing PostgreSQL bookmarks stay valid.
 - PDF documents still use Android Save/Share; external video uses Watch Video.
 - Re-run backend and Flutter tests and verify external YouTube app/browser launch on Android.
+
+## In-app educational video follow-up
+Updated per user requirement: tapping the Stanford resource opens its existing NTAM Resource detail screen, and **Play Video** starts the official YouTube iframe player inline. No launch to the YouTube app/browser. The resource row play icon also navigates to the internal detail screen. The iframe uses youtube_player_iframe ^6.0.2, requiring Flutter >=3.38. Publisher-side embed restrictions, connectivity and Android WebView runtime must be verified on emulator. The original PDF Save/Share path and existing PostgreSQL bookmark ID remain unchanged.

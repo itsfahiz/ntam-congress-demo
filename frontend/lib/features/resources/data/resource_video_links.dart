@@ -1,17 +1,13 @@
-import 'package:url_launcher/url_launcher.dart';
-
-/// Public Stanford educational trailer, not congress recording.
+/// Registry of publisher-hosted educational videos available in the app.
+/// Retaining the original resource ID preserves existing PostgreSQL bookmarks.
 abstract final class ResourceVideoLinks {
+  static const stanfordVideoId = 'z7x1aaZ03xU';
   static const stanfordTrailerUrl =
       'https://www.youtube.com/watch?v=z7x1aaZ03xU';
 
-  // Keep old key so PostgreSQL bookmarks survive the resource update.
-  static Uri? forResource(String id) =>
-      id == 'session-recap' ? Uri.parse(stanfordTrailerUrl) : null;
+  static String? videoIdForResource(String id) =>
+      id == 'session-recap' ? stanfordVideoId : null;
 
-  static Future<bool> watch(String id) async {
-    final uri = forResource(id);
-    if (uri == null) return false;
-    return launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
+  static Uri? forResource(String id) =>
+      videoIdForResource(id) == null ? null : Uri.parse(stanfordTrailerUrl);
 }

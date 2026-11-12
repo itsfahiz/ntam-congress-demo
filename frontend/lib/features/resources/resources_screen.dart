@@ -11,7 +11,6 @@ import '../congress/data/congress_catalog.dart';
 import '../congress/domain/congress_models.dart';
 import '../saved/state/saved_items_controller.dart';
 import 'data/resource_file_service.dart';
-import 'data/resource_video_links.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -64,22 +63,6 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not open Save/Share. Please try again.')),
-      );
-    }
-  }
-
-  Future<void> _watchVideo(CongressResource resource) async {
-    try {
-      final opened = await ResourceVideoLinks.watch(resource.id);
-      if (!opened && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open YouTube. Check your connection.')),
-        );
-      }
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open YouTube. Check your connection.')),
       );
     }
   }
@@ -225,7 +208,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                         saved: saved.isSaved('resource', resource.id),
                         onOpen: () => _openResource(resource),
                         onDownload: () => resource.kind == ResourceKind.video
-                            ? _watchVideo(resource)
+                            ? _openResource(resource)
                             : _download(resource),
                         onSave: () => _toggleSaved(resource.id),
                       );
@@ -554,7 +537,7 @@ class _ResourceCard extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: resource.kind == ResourceKind.video
-                        ? 'Watch on YouTube'
+                        ? 'Play video in app'
                         : 'Download',
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,

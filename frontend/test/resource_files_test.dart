@@ -33,6 +33,8 @@ void main() {
         'https://www.youtube.com/watch?v=z7x1aaZ03xU');
     expect(ResourceVideoLinks.forResource('programme'), isNull);
     expect(video.availabilityLabel, contains('YouTube'));
+    expect(ResourceVideoLinks.videoIdForResource(video.id), 'z7x1aaZ03xU');
+    expect(ResourceVideoLinks.videoIdForResource('programme'), isNull);
   });
 
   test('third-party video is never packaged as an MP4 or PDF', () async {
