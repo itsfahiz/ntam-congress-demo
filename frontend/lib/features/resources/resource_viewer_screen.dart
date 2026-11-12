@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:video_player/video_player.dart';
 
@@ -62,15 +63,18 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
     if (resource == null || _busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      final file = await ResourceFileService.saveOffline(resource);
+      final location = await ResourceFileService.download(resource);
       if (!mounted) return;
-      setState(() => _offlinePath = file.path);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('File downloaded for offline access in the app.')));
+      setState(() => _offlinePath = location);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved to $location')),
+      );
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      setState(() => _error = error.message ?? 'Download failed.');
     } catch (_) {
       if (mounted) {
-        setState(() =>
-            _error = 'Could not save the file. Check your device storage.');
+        setState(() => _error = 'Could not download this resource.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -154,7 +158,7 @@ class _ResourceViewerScreenState extends State<ResourceViewerScreen> {
                 ]),
                 if (_offlinePath != null) const Padding(
                   padding: EdgeInsets.only(top: 8),
-                  child: Text('Downloaded to offline app storage. Use Export to save it elsewhere.',
+                  child: Text('Saved in device Downloads. Open Files → Downloads → NTAM Congress.',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
                 ),
                 if (_error != null) Padding(

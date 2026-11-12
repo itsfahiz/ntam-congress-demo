@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/app_routes.dart';
@@ -57,15 +58,19 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
   Future<void> _download(CongressResource resource) async {
     try {
-      await ResourceFileService.saveOffline(resource);
+      final location = await ResourceFileService.download(resource);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${resource.title} downloaded for offline access. '
-            'Use Export in the viewer to save outside the app.')));
-    } catch (_) {
+        SnackBar(content: Text('Saved to $location')),
+      );
+    } catch (error) {
       if (!mounted) return;
+      final message = error is PlatformException
+          ? error.message ?? 'Download failed. Try Export instead.'
+          : 'Could not download. Try Export from the viewer.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not download this resource.')));
+        SnackBar(content: Text(message)),
+      );
     }
   }
 

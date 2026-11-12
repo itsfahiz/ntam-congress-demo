@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -31,6 +32,36 @@ abstract final class ResourceFileService {
     final file = File('${folder.path}/${filename(resource)}');
     await file.writeAsBytes(await bytes(resource), flush: true);
     return file;
+  }
+
+  static const _downloadChannel = MethodChannel('ntam.congress/downloads');
+
+  /// Android 10+: write a publicly visible file through MediaStore Downloads.
+  /// Older Android / other platforms use Export to Files instead.
+  static Future<String> download(CongressResource resource) async {
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      throw const PlatformException(
+        code: 'EXPORT_REQUIRED',
+        message: 'Use Export to save this file on your device.',
+      );
+    }
+    final result = await _downloadChannel.invokeMethod<String>(
+      'saveToDownloads',
+      {
+        'filename': filename(resource),
+        'mimeType': resource.kind == ResourceKind.video
+            ? 'video/mp4'
+            : 'application/pdf',
+        'bytes': await bytes(resource),
+      },
+    );
+    if (result == null || result.isEmpty) {
+      throw const PlatformException(
+        code: 'DOWNLOAD_FAILED',
+        message: 'The download did not return a file location.',
+      );
+    }
+    return result;
   }
 
   /// Export the real bytes through the platform share/save-to-files sheet.
