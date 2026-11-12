@@ -58,6 +58,7 @@ before(async () => {
   const saved = createMemorySavedStore();
   await saved.save(USER_A, 'session', 'opening');
   await saved.save(USER_A, 'resource', 'programme');
+  await saved.save(USER_A, 'speaker', 'sarah');
   await saved.save(USER_B, 'session', 'closing');
   setSavedStoreOverride(saved);
   setQuestionStoreOverride(createMemoryQuestionStore());
@@ -281,4 +282,25 @@ test('without Gemini configuration, server reports a safe 503 error', async () =
     if (previous === undefined) delete process.env.GEMINI_API_KEY;
     else process.env.GEMINI_API_KEY = previous;
   }
+});
+
+test('favorite speaker tool provides owned favorites and their sessions', async () => {
+  setAssistantModelTurnOverride(async ({ contents, round }) => {
+    if (round === 0) {
+      return { text: '', calls: [{ name: 'get_my_saved_items', args: {} }] };
+    }
+    const parts = contents.at(-1)?.parts ?? [];
+    const data = (parts[0] as {
+      functionResponse?: { response?: { items?: unknown[] } };
+    })?.functionResponse?.response ?? {};
+    return { text: JSON.stringify(data.items ?? []), calls: [] };
+  });
+  const huda = await ask('Which speakers did I favorite, and what are their sessions?', 'user-a');
+  const amira = await ask('Which speakers did I favorite, and what are their sessions?', 'user-b');
+  assert.equal(huda.status, 200);
+  assert.equal(huda.body.grounded, true);
+  assert.match(huda.body.answer ?? '', /Dr. Sarah Johnson/);
+  assert.match(huda.body.answer ?? '', /Future of Pediatric Nutrition/);
+  assert.ok(huda.body.sources?.some((item) => item.type === 'speaker' && item.id === 'sarah'));
+  assert.doesNotMatch(amira.body.answer ?? '', /Dr. Sarah Johnson/);
 });

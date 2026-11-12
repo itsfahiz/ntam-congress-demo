@@ -63,6 +63,7 @@ test('saved items require a signed-in attendee', async () => {
 test('sessions and resources persist together, remain idempotent and private', async () => {
   const session = { itemType: 'session', itemId: 'opening' };
   const resource = { itemType: 'resource', itemId: 'programme' };
+  const speaker = { itemType: 'speaker', itemId: 'sarah' };
   const first = await request('/api/saved', {
     token: 'user-a', method: 'POST', body: session,
   });
@@ -74,11 +75,15 @@ test('sessions and resources persist together, remain idempotent and private', a
     token: 'user-a', method: 'POST', body: resource,
   })).status, 200);
 
+  assert.equal((await request('/api/saved', {
+    token: 'user-a', method: 'POST', body: speaker,
+  })).status, 200);
+
   const userA = await request('/api/saved', { token: 'user-a' });
   assert.equal(userA.status, 200);
   assert.deepEqual(
     userA.body.items?.map((item) => [item.itemType, item.itemId]).sort(),
-    [['resource', 'programme'], ['session', 'opening']],
+    [['resource', 'programme'], ['session', 'opening'], ['speaker', 'sarah']],
   );
   assert.deepEqual((await request('/api/saved', { token: 'user-b' })).body.items, []);
 
@@ -87,6 +92,13 @@ test('sessions and resources persist together, remain idempotent and private', a
   });
   assert.equal(removed.status, 200);
   assert.equal(removed.body.removed, true);
+  assert.deepEqual(
+    (await request('/api/saved', { token: 'user-a' })).body.items?.map((item) => item.itemId),
+    ['programme', 'sarah'],
+  );
+  assert.equal((await request('/api/saved/speaker/sarah', {
+    token: 'user-a', method: 'DELETE',
+  })).status, 200);
   assert.deepEqual(
     (await request('/api/saved', { token: 'user-a' })).body.items?.map((item) => item.itemId),
     ['programme'],
@@ -108,5 +120,13 @@ test('unknown catalog ids, invalid item types and extra body fields are rejected
   })).status, 400);
   assert.equal((await request('/api/saved/resource/fake-resource', {
     token: 'user-a', method: 'DELETE',
+  })).status, 404);
+  assert.equal((await request('/api/saved', {
+    token: 'user-a', method: 'POST',
+    body: { itemType: 'speaker', itemId: 'committee' },
+  })).status, 404);
+  assert.equal((await request('/api/saved', {
+    token: 'user-a', method: 'POST',
+    body: { itemType: 'speaker', itemId: 'invented-speaker' },
   })).status, 404);
 });

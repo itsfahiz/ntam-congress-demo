@@ -1,8 +1,8 @@
-import { sessions } from '../../data/catalog.js';
+import { sessions, speakers } from '../../data/catalog.js';
 import { getPool } from '../db/pool.js';
 import { publicError } from '../types/http.js';
 
-export type SavedItemType = 'session' | 'resource';
+export type SavedItemType = 'session' | 'resource' | 'speaker';
 export type SavedItem = { itemType: SavedItemType; itemId: string; createdAt: string };
 
 export type SavedStore = {
@@ -14,6 +14,7 @@ export type SavedStore = {
 const sessionIds = new Set(sessions.map((session) => session.id));
 // These four IDs must stay aligned with CongressCatalog.resources in Flutter.
 const resourceIds = new Set(['programme', 'pediatric-guide', 'keynote-slides', 'session-recap']);
+const speakerIds = new Set(speakers.filter((speaker) => speaker.listed).map((speaker) => speaker.id));
 let storeOverride: SavedStore | null = null;
 
 export function setSavedStoreOverride(value: SavedStore | null) {
@@ -21,7 +22,7 @@ export function setSavedStoreOverride(value: SavedStore | null) {
 }
 
 export function assertCatalogItem(type: SavedItemType, id: string) {
-  const ids = type === 'session' ? sessionIds : resourceIds;
+  const ids = type === 'session' ? sessionIds : type === 'resource' ? resourceIds : speakerIds;
   if (!ids.has(id)) {
     throw publicError(404, 'This congress item is not available.', 'unknown_item');
   }

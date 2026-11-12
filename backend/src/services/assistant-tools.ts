@@ -44,7 +44,7 @@ export const assistantToolDeclarations = [
   },
   {
     name: 'get_my_saved_items',
-    description: 'Read only the signed-in attendee\'s bookmarked congress sessions and resources from PostgreSQL, including titles, to answer which items are saved or how many.',
+    description: 'Read the signed-in attendee's saved sessions, resources and favorite speakers from PostgreSQL, including speaker sessions and titles. Useful for my saved items, favorite speakers and combined questions.',
     parametersJsonSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
@@ -127,15 +127,32 @@ export async function executeAssistantTool(
           const resource = item.itemType === 'resource'
             ? resources.find((row) => row.id === item.itemId)
             : undefined;
+          const favoriteSpeaker = item.itemType === 'speaker'
+            ? speakers.find((person) => person.id === item.itemId && person.listed)
+            : undefined;
+          const presenterSessions = favoriteSpeaker
+            ? sessions.filter((row) => row.speakerId === favoriteSpeaker.id)
+            : [];
           return {
             type: item.itemType,
             id: item.itemId,
-            title: session?.title ?? resource?.title ?? 'Unknown catalogue item',
+            title: session?.title ?? resource?.title ?? favoriteSpeaker?.fullName ?? 'Unknown catalogue item',
             ...(session ? {
               day: session.day,
               time: session.timeLabel,
               location: session.location,
               speaker: speaker?.fullName ?? null,
+            } : {}),
+            ...(favoriteSpeaker ? {
+              role: favoriteSpeaker.title,
+              country: favoriteSpeaker.country,
+              sessions: presenterSessions.map((row) => ({
+                id: row.id,
+                title: row.title,
+                day: row.day,
+                time: row.timeLabel,
+                location: row.location,
+              })),
             } : {}),
           };
         });
