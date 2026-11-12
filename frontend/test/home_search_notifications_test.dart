@@ -49,8 +49,7 @@ void main() {
     await tester.tap(find.byTooltip('Filter sessions'));
     await tester.pumpAndSettle();
     expect(find.text('Search Congress'), findsOneWidget);
-    await tester.tap(find.byTooltip('Search filters'));
-    await tester.pumpAndSettle();
+    expect(find.text('Search filters'), findsOneWidget);
     await tester.tap(find.text('Day 2'));
     await tester.tap(find.text('Nutrition'));
     await tester.tap(find.text('Show results'));

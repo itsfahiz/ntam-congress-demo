@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme/app_colors.dart';
 import '../../core/widgets/congress_feature_scaffold.dart';
 import '../agenda/widgets/session_detail_sheet.dart';
 import '../congress/data/congress_catalog.dart';
-import '../congress/domain/congress_models.dart';
 import '../speakers/widgets/speaker_detail_sheet.dart';
 import '../../app/app_routes.dart';
 import 'state/saved_items_controller.dart';

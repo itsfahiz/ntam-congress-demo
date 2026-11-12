@@ -11,7 +11,8 @@ import '../speakers/widgets/speaker_detail_sheet.dart';
 
 /// Search across the *whole* local congress catalogue, not just Day 1.
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.openFiltersOnStart = false});
+  final bool openFiltersOnStart;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -30,6 +31,11 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _controller.addListener(_onQuery);
+    if (widget.openFiltersOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openFilters();
+      });
+    }
   }
 
   void _onQuery() {
@@ -153,7 +159,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 4),
           child: TextField(
-            autofocus: true,
+            autofocus: !widget.openFiltersOnStart,
             controller: _controller,
             focusNode: _focusNode,
             textInputAction: TextInputAction.search,

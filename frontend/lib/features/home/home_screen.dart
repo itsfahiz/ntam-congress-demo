@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sliver: SliverToBoxAdapter(
                         child: HomeSearchBar(
                           onSearchTap: _openSearch,
-                          onFilterPressed: _openSearch,
+                          onFilterPressed: () => context.push('${AppRoutes.search}?filters=1'),
                           filterActive: false,
                         ),
                       ),

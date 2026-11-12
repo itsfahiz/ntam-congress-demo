@@ -104,7 +104,9 @@ GoRouter createRouter(AuthController authController) {
       GoRoute(
         path: AppRoutes.search,
         name: 'search',
-        builder: (context, state) => const SearchScreen(),
+        builder: (context, state) => SearchScreen(
+          openFiltersOnStart: state.uri.queryParameters['filters'] == '1',
+        ),
       ),
       GoRoute(
         path: AppRoutes.notifications,
