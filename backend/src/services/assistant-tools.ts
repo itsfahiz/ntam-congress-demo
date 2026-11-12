@@ -44,7 +44,7 @@ export const assistantToolDeclarations = [
   },
   {
     name: 'get_my_saved_items',
-    description: 'Read the signed-in attendee's saved sessions, resources and favorite speakers from PostgreSQL, including speaker sessions and titles. Useful for my saved items, favorite speakers and combined questions.',
+    description: "Read the signed-in attendee's saved sessions, resources and favorite speakers from PostgreSQL, including speaker sessions and titles. Useful for my saved items, favorite speakers and combined questions.",
     parametersJsonSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
