@@ -1,217 +1,143 @@
-# Nestlé Medical Congress (NTAM assessment)
+# NMC 2026 — Medical Congress Companion
+**NTAM Group technical assessment | Flutter Android + Node.js/Express + Supabase/PostgreSQL + Gemini**
 
-Companion Android app and API for NTAM’s Nestlé Medical Congress technical assessment. It is a demonstration of the requested attendee flows, not an official Nestlé product.
+A working, Android-first congress attendee application built against the provided Nestlé Medical Congress reference screens. This is an **independent assessment demonstration**, **not** an official Nestlé application, event service, or confirmed event announcement. The programme, speaker biographies, resources and exhibitor descriptions are illustrative.
 
+## Repository layout
+
+```text
+frontend/  Flutter / Dart Android app (NMC 2026)
+backend/   Node.js / Express 5 / TypeScript REST API
+           PostgreSQL migrations and backend tests
 ```
-root/
-  frontend/   Flutter / Dart Android app
-  backend/    Node.js + Express + TypeScript API
-```
 
-The Flutter UI follows the assessment reference screens. Live behaviour is split: **seeded on-device catalogue** for programme content, and **authenticated backend services** for accounts, voting, Q&A, badge QR, and Congress AI.
+The main source branch is `main`. A tested Android APK and narrated product-demo video are delivered **separately to the assessment reviewers**; neither file is committed to this source repository.
 
-The API is documented in [`backend/README.md`](backend/README.md). On Render, set the service root directory to `backend/`.
+## Features and data ownership
 
-## What is real vs illustrative
-
-| Area | Implementation |
+| Feature | Implementation |
 | --- | --- |
-| Email/password auth | **Real.** Supabase Auth. Registration requires email confirmation before sign-in. Session restore on launch; Sign Out clears the session. |
-| Attendee profile | **Real.** `GET`/`POST /api/me` persists name, organization, and badge ID in PostgreSQL. |
-| Agenda, speakers, venue copy | **Seeded catalogue** in Flutter (`CongressCatalog`) and the API (`backend/data/catalog.ts`). Not a CMS. |
-| Live Voting | **Real.** Three PostgreSQL polls, one vote per attendee per poll, server-calculated counts and percentages. |
-| Ask Q&A | **Real.** Authenticated questions, likes, and replies in PostgreSQL. No catalogue sample cards in production. |
-| Name Tag QR | **Real.** HMAC-signed verification URL from `GET /api/me/badge`. Public `GET /badge/verify`. |
-| Congress AI | **Real.** Gemini answers grounded in retrieved catalogue records, with source chips. |
-| Google / Apple / forgot-password | **UI only.** Buttons explain they are not connected. Forgot-password does not send email. |
-| Resources, exhibitors | **Illustrative.** On-device summaries and demo booths. The Venue map is a live OpenStreetMap view of DWTC; address copy remains catalogue text, not a confirmed booking. |
-| Organizer tools | **Not in scope.** No poll authoring, moderation, or certificate issuance. |
+| Registration, email confirmation, sign-in, sign-out | Real Supabase email/password authentication, protected routes and session restoration |
+| Attendee profile | Read/update name, organization and optional phone through an authenticated Express API; PostgreSQL persistence |
+| Home, global search, agenda, speakers, quick access | Real Flutter functionality using an **illustrative, seeded congress catalogue**; day/track/category filters and grid/list navigation |
+| Notifications | Three **sample programme notices**, each linked to a related screen; **not push notifications** |
+| Session bookmarks, speaker favorites, saved resources | Authenticated REST API and PostgreSQL; available again after signing in on another device |
+| Digital attendee name tag | Stable attendee badge ID, server-issued HMAC-signed QR verification URL and public read-only verification page; working print/PDF flow |
+| Audience polls / Live Voting | Three backend polls; PostgreSQL results and unique vote constraint: one vote per authenticated attendee per poll |
+| Ask Q&A | PostgreSQL-backed questions, topic categories, likes/unlikes and replies accessible across devices |
+| Congress AI | Authenticated, rate-limited Express endpoint using Google Gemini with **server-controlled read-only function tools** and catalogue retrieval; source references and personalized attendee context |
+| Resources | Original illustrative PDFs and slide-style documents generated in-app; preview, print, download/share chooser and persistent resource saves |
+| Educational video | Embedded third-party Stanford University YouTube course trailer; Internet and YouTube embedding availability required |
+| Venue | Interactive OpenStreetMap map and external directions to Dubai World Trade Centre; **not** a confirmation of actual venue booking |
+| Exhibitors | Illustrative catalogue entries; no live exhibitor feed |
 
-Widget tests inject in-memory repositories. `flutter run` / release builds do **not** fall back to that fixture. If `SUPABASE_ANON_KEY` is missing, sign-in is refused.
+### Congress AI implementation
 
-## Architecture
+`POST /api/assistant/ask` **requires a valid Supabase Bearer token**. The server calls Gemini using its own `GEMINI_API_KEY`; the key never enters Flutter. Gemini may request only allowlisted, read-only functions:
 
+- `search_congress`: lexical retrieval over the seeded programme, speakers, venue and resources, with source references.
+- `get_my_profile_field`: one field from the **signed-in** attendee's profile.
+- `get_my_saved_items`: saved sessions/resources/speakers, including a favorite speaker's session schedule.
+- `get_my_questions`: the attendee's own Q&A submissions.
+- `get_active_polls`: poll information and the attendee's vote status.
+
+Tool calls are validated and executed by Express using the authenticated user's ID; the model cannot select a user ID or perform arbitrary database queries. This is **lightweight retrieval-grounded AI**, not an embeddings/vector-database architecture. Gemini responses and their source chips are presented in the Flutter app.
+
+## Running the Android app
+
+Requirements: Flutter compatible with Dart 3.11.5+, Android emulator/device, and a configured Supabase project and backend. Example local config file `frontend/config.local.json` (gitignored):
+
+```json
+{
+  "API_BASE_URL": "https://ntam-congress-api.onrender.com",
+  "SUPABASE_URL": "https://YOUR_PROJECT.supabase.co",
+  "SUPABASE_ANON_KEY": "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
+}
 ```
-frontend/lib/
-  app/           theme, routes, API/Supabase config, MaterialApp
-  core/widgets/  shared chrome
-  features/
-    auth/        login, register, splash, Supabase auth
-    assistant/   Congress AI
-    congress/    seeded sessions, speakers, venue, resources, exhibitors
-    home/        dashboard + Congress AI entry
-    voting/      HTTP polls
-    qa/          HTTP questions, likes, replies
-    name_tag/    signed badge QR
-    agenda/ speakers/ venue/ resources/ exhibitors/ profile/ quick_access/
-
-backend/
-  src/           Express routes and services
-  data/catalog.ts
-  db/migrations/ 001–004
-```
-
-- Flutter: `go_router` with an auth splash, login/register gates, and a Home/Profile shell.
-- Session: `AuthController` + `SupabaseAuthRepository` (`supabase_flutter`). Access token is sent as `Authorization: Bearer` to the API.
-- HTTP from Flutter uses `dart:io` `HttpClient` (no extra HTTP package).
-- API: Express 5, Zod validation, `pg` against Supabase PostgreSQL. Gemini (`@google/genai`) stays on the server.
-- Direct table access from anon/authenticated Supabase clients is revoked; the Express API is the only writer.
-
-## Features
-
-- **Auth:** email/password login and registration, validation, password visibility, email-confirmation success card, login email prefill after verify, session restore, Sign Out. Google/Apple sheets state they are not configured.
-- **Home:** greeting from the signed-in attendee, search, track filter, featured event, **Congress AI** entry, Quick Access, upcoming sessions from the catalogue.
-- **Agenda / Speakers:** day and track filters, session details, in-memory bookmarks/favorites for the current screen only.
-- **Name Tag:** signed-in attendee badge. QR encodes `GET /badge/verify?b=<badgeId>&s=<hmac>`. Print is not connected.
-- **Venue:** catalogue name/address/facilities, interactive OpenStreetMap pin at Dubai World Trade Centre, Get Directions via the official DWTC Google Maps URL.
-- **Live Voting:** loads `GET /api/polls` (three active polls), Previous/Next, one submit per poll via `POST /api/polls/:pollId/vote`. Results are server counts. Duplicate votes return `409`.
-- **Ask Q&A:** `GET`/`POST /api/questions`; like/unlike; list/add replies. Popular ranks by real `likeCount`. Answered uses the backend `answered` flag (attendee replies do not set it).
-- **Congress AI:** `POST /api/assistant/ask`. Lexical retrieval over the catalogue (sessions, speakers, days), Gemini grounded on those records, source chips. Out-of-catalogue questions skip Gemini.
-- **Resources / Exhibitors:** on-device summaries and illustrative booths.
-- **Profile:** signed-in name, email, organization, badge ID. Session count is the catalogue size (08). Saved / Certificates stay 00 (unsupported).
-
-## Android identity
-
-| | |
-| --- | --- |
-| Launcher label | `Nestlé Congress` |
-| `applicationId` | `com.muhammedfahiz.ntamcongressdemo` (assessment id, not a Play listing) |
-| Icon | Branded adaptive launcher (`frontend/assets/branding/`, generated into `mipmap` / `drawable`) |
-| Native splash | Navy congress splash (`flutter_native_splash`, `#0D1D57`) |
-| In-app splash | `AuthSplashScreen` while the session is restored |
-| Signing | Release APK uses the Android **debug** keystore on purpose |
-
-No unlicensed Nestlé trademark artwork is claimed as an official mark; branding here is assessment chrome.
-
-## Requirements
-
-- Flutter 3.41+ (Dart 3.11)
-- Android emulator or device (this assessment is Android-only)
-- Node.js 20+ (22+ recommended for `@google/genai`)
-- Supabase project (Auth + PostgreSQL) and a Gemini API key for Congress AI
-
-Never commit `.env`, `frontend/config.local.json`, service-role keys, or `BADGE_SIGNING_SECRET`.
-
-## Flutter setup
 
 ```bash
 cd frontend
 flutter pub get
 flutter analyze
 flutter test
+flutter run --dart-define-from-file=config.local.json
 ```
 
-Create gitignored `frontend/config.local.json` (string values only):
-
-```json
-{
-  "API_BASE_URL": "https://ntam-congress-api.onrender.com",
-  "SUPABASE_URL": "https://YOUR_PROJECT.supabase.co",
-  "SUPABASE_ANON_KEY": "YOUR_SUPABASE_ANON_KEY"
-}
-```
-
-Local emulator against a machine-local API:
-
-```bash
-flutter run --dart-define-from-file=config.local.json \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000
-```
-
-Physical device: use `http://<LAN-IP>:3000` instead of `10.0.2.2`. Debug builds allow cleartext HTTP; release builds do not.
-
-Equivalent flags without the JSON file:
-
-```bash
-flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000 \
-  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-```
-
-Release APK (debug-keystore signed, not a Play Store build):
+Build the reviewer-installable APK:
 
 ```bash
 cd frontend
 flutter build apk --release --dart-define-from-file=config.local.json
+# output: build/app/outputs/flutter-apk/app-release.apk
 ```
 
-Or pass the three `--dart-define` values explicitly. Output: `frontend/build/app/outputs/flutter-apk/app-release.apk`.
+The release Android launcher label is **NMC 2026**; application ID is `com.muhammedfahiz.ntamcongressdemo`. The assessment APK uses a **debug signing key for convenience**; this is not a production/Play Store signing configuration. Icon and splash generation configs are at `frontend/flutter_launcher_icons.yaml` and `frontend/flutter_native_splash.yaml`.
 
-If `API_BASE_URL` is omitted, debug defaults to `http://10.0.2.2:3000` and release defaults to `https://ntam-congress-api.onrender.com`. `SUPABASE_ANON_KEY` has no production fallback; without it the app will not authenticate.
+### Reviewer sign-in
 
-There are no shared demo logins. Register a real email, confirm it, then sign in.
+Registration requires a real email address and email confirmation. The submission contact may provide a **dedicated, pre-confirmed demo attendee account through a private channel**. No credentials are stored in this repository. If registering a new account, complete the email verification link before signing in.
 
-## API setup
+## Backend setup
+
+See [backend/README.md](backend/README.md) for configuration, API routes, Supabase email-confirmation URLs, the Render deployment and badge verification.
 
 ```bash
 cd backend
 cp .env.example .env
 # Set DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY,
-# GEMINI_API_KEY, BADGE_SIGNING_SECRET, PUBLIC_BASE_URL.
+# GEMINI_API_KEY, BADGE_SIGNING_SECRET and PUBLIC_BASE_URL
 npm install
+npm run typecheck
 npm test
+npm run build
 npm start
 ```
 
-Apply migrations in order in the Supabase SQL editor: `001_attendee_profiles_and_questions.sql`, `002_live_polls.sql`, `003_add_congress_polls.sql`, `004_qa_interactions.sql`. `003` only seeds polls 2 and 3. `004` adds likes and replies.
+Apply **all seven** PostgreSQL migrations in numeric order from `backend/db/migrations/`:
 
-Keep email confirmation enabled. Site URL / Redirect URLs should be the API’s `/auth/confirmed` page (see [`backend/README.md`](backend/README.md)).
+1. `001_attendee_profiles_and_questions.sql`
+2. `002_live_polls.sql`
+3. `003_add_congress_polls.sql`
+4. `004_qa_interactions.sql`
+5. `005_saved_items.sql`
+6. `006_editable_attendee_phone.sql`
+7. `007_saved_speaker_favorites.sql`
 
-### Authenticated API (Bearer token)
+The deployed reference API is `https://ntam-congress-api.onrender.com` (`GET /health` is public). Hosting on a free/limited tier can introduce a wake-up delay.
 
-| Method | Path |
-| --- | --- |
-| `GET`/`POST` | `/api/me` |
-| `GET` | `/api/me/badge` |
-| `GET` | `/api/polls`, `/api/polls/active` |
-| `POST` | `/api/polls/:pollId/vote` |
-| `GET`/`POST` | `/api/questions` |
-| `POST`/`DELETE` | `/api/questions/:questionId/like` |
-| `GET`/`POST` | `/api/questions/:questionId/replies` |
+### API overview
 
-### Public
+| Access | Methods / route | Purpose |
+| --- | --- | --- |
+| Public | `GET /health` | Health status |
+| Public | `GET /auth/confirmed` | Email confirmation landing page |
+| Public | `GET /api/event`, `/api/sessions`, `/api/speakers` | Seeded event catalogue |
+| Public | `GET /badge/verify?b=...&s=...` | Signed attendee badge verification |
+| Authenticated | `GET/POST /api/me` | Read/update attendee profile |
+| Authenticated | `GET /api/me/badge` | Issue signed badge verification URL |
+| Authenticated | `GET /api/polls`, `/api/polls/active`; `POST /api/polls/:pollId/vote` | Polls and voting |
+| Authenticated | `GET/POST /api/questions`; `POST/DELETE /api/questions/:id/like`; `GET/POST /api/questions/:id/replies` | Q&A |
+| Authenticated | `GET/POST /api/saved`; `DELETE /api/saved/:type/:id` | Saved sessions, resources and speakers |
+| Authenticated | `POST /api/assistant/ask` | Gemini-assisted grounded answers and authorized personal context |
 
-| Method | Path |
-| --- | --- |
-| `GET` | `/health` |
-| `GET` | `/auth/confirmed` |
-| `GET` | `/api/event`, `/api/sessions`, `/api/speakers` |
-| `POST` | `/api/assistant/ask` `{ "question": "..." }` |
-| `GET` | `/badge/verify?b=&s=` |
+All authenticated API requests use `Authorization: Bearer <Supabase access token>`. Express verifies the token and derives the user ID server-side. PostgreSQL records cannot be assigned to arbitrary client-supplied users.
 
-Assistant JSON: `{ "answer", "grounded", "sources": [{ "type": "session\|speaker\|day", "id" }] }`. Default model `gemini-3.5-flash-lite`. Keys never leave the server.
-
-## Tests
+## Tests and quality checks
 
 ```bash
-cd frontend && flutter test
-cd backend && npm test
+cd frontend && flutter analyze && flutter test
+cd ../backend && npm run typecheck && npm test && npm run build
 ```
 
-Flutter tests cover auth gates, catalogue consistency, Agenda/Quick Access, Speakers/Name Tag/Venue, live voting UI, Q&A likes/replies, Congress AI parsing and bold answer rendering, badge QR, resources/profile/exhibitors, and protected routes. They use mock repositories, not production credentials.
+Flutter widget tests use isolated test repositories. Backend tests mock Gemini; they do not replace real-device validation. The final release build was additionally exercised on physical Android devices by the developer, including cross-device interaction.
 
-API tests cover catalog, retrieval, assistant grounding, polls, questions, and badge HMAC verification, with Gemini mocked.
+## Scope, limitations and security
 
-## Limitations
+- **Assessment demonstration only:** seeded event days, session data, speaker profiles, venue copy and illustrative exhibitors are not official or live organizer records.
+- **No live push notifications**, Google/Apple OAuth, forgot-password email delivery, certificate issuance, organizer dashboard or live CMS.
+- **Educational video is third-party content**, not congress footage. Its playback may depend on network access and YouTube restrictions.
+- **No medical advice** is provided by this app; demonstration PDFs are original illustrative documents, not clinical guidance.
+- No production app-store signing, iOS build or web release is provided.
+- Never commit `backend/.env`, `frontend/config.local.json`, PostgreSQL credentials, Gemini keys, service-role credentials or `BADGE_SIGNING_SECRET`. Only the public Supabase publishable/anon key belongs in a client build.
 
-- Programme content is a **seeded assessment catalogue**, not live event operations data. Speaker bios and Ahmed’s country/title are illustrative.
-- Google/Apple sign-in and password reset are not connected.
-- Agenda bookmarks, speaker favorites, and resource bookmarks are screen-local only.
-- Venue address text is copied from the assessment PDF. The in-app map pin is the official Dubai World Trade Centre location (OpenStreetMap tiles), not a confirmed congress booking. Get Directions opens the official DWTC Google Maps destination.
-- Resources are on-device summaries. No PDFs, decks, or videos are bundled; tapping a card does not download a file.
-- Exhibitors are illustrative demo booths, not an official directory.
-- Profile Saved / Certificates are unsupported (shown as 00). Phone is stored as “Not provided”; location is catalogue copy (`Dubai, UAE`).
-- No organizer console (poll authoring, Q&A moderation, check-in hardware).
-- Release APK is signed with the Android **debug** keystore. Not a production signing identity.
-- Android-only; iOS/web are out of scope.
-
-## Flutter packages
-
-| Package | Why |
-| --- | --- |
-| `go_router` | Named routes, auth redirects, Home/Profile shell |
-| `supabase_flutter` | Email/password Auth and session restore |
-| `qr_flutter` | Name Tag QR rendering |
-| `flutter_lints` | Analyzer rules (dev) |
-| `flutter_launcher_icons` / `flutter_native_splash` | Android icon and native splash (dev) |
+For a feature-by-feature walkthrough, refer to the accompanying NMC 2026 technical demo video supplied with the assessment.
